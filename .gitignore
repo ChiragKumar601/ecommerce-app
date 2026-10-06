@@ -1,0 +1,20 @@
+node_modules/
+dist/
+coverage/
+*.log
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# backend data & uploads
+backend/data/*.db
+backend/data/*.db-*
+backend/storage/uploads/*
+!backend/storage/uploads/.gitkeep
+backend/src/generated/
+
+# frontend / tests
+frontend/playwright-report/
+frontend/test-results/
+.lighthouseci/

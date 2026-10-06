@@ -1,0 +1,38 @@
+{
+  "name": "ecommerce-app",
+  "private": true,
+  "packageManager": "pnpm@10.33.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev:frontend": "pnpm --filter @app/frontend dev",
+    "dev:backend": "pnpm --filter @app/backend dev",
+    "dev:worker": "pnpm --filter @app/backend dev:worker",
+    "build:frontend": "pnpm --filter @app/frontend build",
+    "preview:frontend": "pnpm --filter @app/frontend preview",
+    "build:backend": "pnpm --filter @app/backend build",
+    "start:backend": "pnpm --filter @app/backend start",
+    "start:worker": "pnpm --filter @app/backend start:worker",
+    "test:shared": "pnpm --filter @app/shared test",
+    "test:backend": "pnpm --filter @app/backend test",
+    "test:frontend": "pnpm --filter @app/frontend test",
+    "test:e2e": "pnpm --filter @app/frontend test:e2e",
+    "db:migrate": "pnpm --filter @app/backend db:migrate",
+    "db:reset": "pnpm --filter @app/backend db:reset",
+    "db:seed": "pnpm --filter @app/backend db:seed",
+    "lint": "eslint .",
+    "typecheck": "pnpm -r typecheck",
+    "format": "prettier --write ."
+  },
+  "type": "module",
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.9",
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.71.1"
+  }
+}

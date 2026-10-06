@@ -1,0 +1,13 @@
+// Database schema (plan §6). SQLite via the libSQL driver adapter.
+// Tables are added migration by migration, following plan §6.2 (M1 arrives in Stage 3).
+// Constraints Prisma can't express (CHECKs, partial unique indexes) live in hand-written
+// migration SQL (plan §6.1).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}

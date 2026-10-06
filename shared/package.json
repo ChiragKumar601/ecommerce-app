@@ -1,0 +1,20 @@
+{
+  "name": "@app/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Validation schemas and cross-boundary types shared by frontend and backend (plan §4.3). No business logic.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.3"
+  }
+}

@@ -101,3 +101,25 @@ A short chronological record of the important steps, decisions and changes on th
       - Design system step **S4.3** added.
       - Font plan: one self-hosted variable font.
       - Stage rules now require tests and the design check before completion, then a log entry, then a commit pushed to `main` (OD-9, OD-10).
+
+## 2026-10-06 — Stage 0: Foundation (complete)
+
+24. **Stage 0 built:**
+    - pnpm workspace with separate `shared/`, `backend/` and `frontend/` packages, and root scripts per folder (`dev:frontend`, `dev:backend`, `dev:worker`, `test:*`, `db:*`).
+    - ESLint import-boundary rules, verified to reject frontend ↔ backend imports.
+    - Express 5 API with `/api/v1/health` and a separate worker process.
+    - Prisma 7 + SQLite with WAL, busy timeout and foreign keys, plus a per-test database helper.
+    - Vite + React 19 + React Router 7 + Tailwind 4 + TanStack Query frontend, with the `/api` dev proxy.
+    - Playwright starting the backend, worker and frontend.
+    - GitHub Actions CI.
+25. **Technical findings during Stage 0:**
+    - `better-sqlite3` couldn't be installed: there is no compiler and no matching prebuilt binary. Switched to Prisma's **libSQL adapter** (SQLite-compatible file database, prebuilt via npm), so the plan is unchanged.
+    - Prisma 7 supports `Json` and `enum` on SQLite, so `Json` columns will be used for payloads.
+    - Versions: TypeScript 5.9.3 (typescript-eslint doesn't support TS 7 yet), ESLint 9, React Router 7.18, Vite 8, Vitest 5, Zod 4, Express 5.2, Prisma 7.10.
+26. **Stage 0 tests:**
+    - lint, typecheck: pass
+    - shared: 1/1, backend: 4/4, frontend: 2/2
+    - E2E smoke: pass on Chromium, Firefox and mobile
+    - **WebKit is pending.** The host needs system libraries (`sudo pnpm exec playwright install-deps webkit`), which only the owner can install.
+27. **Owner chose to skip local WebKit testing.** The host libraries need `sudo`, which can't be entered from the session. WebKit is now opt-in locally (`PW_WEBKIT=1`) and always runs in CI. **Open item:** run the WebKit E2E suite locally before final acceptance (S22.1).
+28. **Stage 0 complete.** Final checks: lint, typecheck, unit tests (shared 1, backend 4, frontend 2) and E2E (Chromium, Firefox, mobile) all pass. Committed and pushed to `main`.
