@@ -27,6 +27,8 @@
 | OD-6 | **Image reuse within a subcategory is allowed**, as long as the catalogue doesn't look obviously repetitive | S3.10 guardrails |
 | OD-7 | **Image credit on `/demo-help`**; the footer doesn't change | S12.6 |
 | OD-8 | Local first; deployment later | Stage 23 is a separate phase |
+| OD-9 | **Exceptional, uniform, responsive UI**: one theme and one component set across all routes | §8.5 design system, S4.3, a design check on every UI step |
+| OD-10 | **Push each stage directly to `main`** after it is verified (no stage branches) | §9 rules |
 
 ## 3. Tech stack
 
@@ -35,7 +37,8 @@
 | Language / runtime | TypeScript 5, Node.js 24 | all | One language |
 | Workspace | pnpm workspaces (`frontend`, `backend`, `shared`) | root | Install once; each folder runs on its own |
 | **Frontend** | **Vite + React 19 + React Router 7 (data mode: `createBrowserRouter`, loaders, `lazy` routes)** | `frontend/` | SPA, routing, route-level code splitting |
-| Styling | Tailwind CSS 4 | `frontend/` | Responsive, consistent styling |
+| Styling | Tailwind CSS 4 (theme tokens as CSS variables) + `clsx`, `tailwind-merge`, `class-variance-authority` | `frontend/` | One theme; component variants defined once and reused everywhere (OD-9) |
+| Typography | One self-hosted variable font (Inter Variable, Latin subset, `font-display: swap`, preloaded) | `frontend/` | A polished, consistent type scale within the FE-006 budget |
 | Accessible primitives | Radix UI (dialog, popover, navigation menu, slider, toast) | `frontend/` | Focus management, keyboard support (FE-004) |
 | Server state | TanStack Query 5 | `frontend/` | Caching, infinite lists, optimistic updates, polling |
 | Forms | react-hook-form + zod (schemas from `shared/`) | `frontend/` | AUTH-016, VAL-001 |
@@ -338,16 +341,37 @@ SQLite allows **one writer at a time** across all processes. The plan relies on 
 | Data in parallel with code | Route loaders start fetches before the page's component code arrives |
 | LCP image | The first hero slide and the first product images use `fetchpriority="high"`, explicit width and height, and a `srcset` built from Pexels size parameters (`?w=`). Images below the fold use `loading="lazy"`. |
 | Layout stability | Fixed aspect-ratio boxes (3:4 cards, hero ratio); skeletons the same size as the content |
-| Fonts | System font stack. No web font on the critical path. |
+| Fonts | One self-hosted variable font (Latin subset, ~35 KB), preloaded, with `font-display: swap` and a matched system fallback, so text renders immediately and the layout doesn't shift |
 | Caching | Immutable hashed assets. Catalogue reads are cached in Query, and the API sets short `Cache-Control` headers on public catalogue endpoints. |
 | Verification | Lighthouse CI (mobile, simulated 4G) on landing, PLP, PDP and bag, run against `pnpm preview:frontend` with the production backend build. The budgets are a stage gate. |
+
+### 8.5 Design system and theming (OD-9)
+The aim is a polished, modern fashion-store feel, identical in theme and component usage on every route, and fully responsive.
+
+| Element | Rule |
+|---|---|
+| **Tokens** | Every colour, font size, spacing step, radius, shadow, z-index and motion duration is a CSS variable in `frontend/src/styles/theme.css`, exposed to Tailwind through `@theme`. **Raw colour or pixel values in components aren't allowed** (a lint rule and code review check this). |
+| **Palette** | A neutral base (warm off-white background, near-black text), one brand accent for primary actions, a sale/discount colour, and semantic success, warning, error and info colours. Every text/background pair is checked for WCAG AA contrast (FE-004). |
+| **Typography** | One variable font. A fixed type scale (display, h1–h4, body, small, caption, price) with set weights and line heights. Prices use tabular numbers. |
+| **Spacing and layout** | A 4 px spacing scale. Container widths and page gutters are tokens (16 px on mobile, scaling up on larger screens). A grid system matching the FE-001 breakpoints. |
+| **Shape and depth** | A small set of radii (cards slightly rounded, as LND-005 describes) and three elevation levels |
+| **Motion** | Short, consistent transitions (150–250 ms, standard easing) on hover, menus, sheets, dialogs and toasts. `prefers-reduced-motion` is respected. |
+| **Component library** (`frontend/src/components/ui`) | Built once on Radix + `cva` variants: Button (primary, secondary, ghost, link; sizes), IconButton, Input, Textarea, Select, Checkbox, Radio, Switch, Slider, Badge, Chip, Card, Dialog, Sheet (bottom on mobile, side on desktop), Popover, Tabs, Accordion, Toast, Skeleton, Spinner, Tooltip, Breadcrumbs, Pagination/LoadMore, EmptyState, ErrorState, PriceTag, RatingBadge, QuantityStepper, Stepper. **Every route uses only these for its controls and states.** No one-off styled buttons or inputs. |
+| **Page patterns** | Shared `PageLayout`, `PageHeader`, `Section` and `FormLayout` patterns keep spacing and heading hierarchy identical across routes |
+| **States** | The loading, empty, error and success states (GLB-002) use the same EmptyState, ErrorState and Skeleton components everywhere |
+| **Responsive** | Mobile-first. Every component is designed at 360, 768, 1024 and 1280 px. Touch targets are ≥ 44 px (FE-004). There is no horizontal scroll (FE-001). |
+| **Imagery** | Product images always sit in fixed-ratio frames with `object-fit: cover` and a soft placeholder colour while loading |
+| **Verification** | A dev-only `/dev/styleguide` route shows every primitive and state, and is excluded from production builds. Playwright screenshot tests of the styleguide and key routes catch visual drift. Each UI step is checked against this table before it is marked complete. |
+
+These are presentation choices within intent §7.8 ("clean, modern and consistent") and §8. They add no product behaviour.
 
 ## 9. Implementation stages
 
 **Rules for every stage:**
 - Each step is one focused commit. **[B]** = backend, **[F]** = frontend, **[S]** = shared.
 - A stage is done when its tests pass and `lint` and `typecheck` are clean.
-- It ends with a summary (what changed, which requirements are covered, what remains) and a push of the stage branch `stage/NN-name`. The owner merges it.
+- **Test before completion:** every test planned for the stage is run and passes; for UI steps, the design checklist (§8.5) is also checked at 360, 768, 1024 and 1280 px.
+- It ends with a summary (what changed, which requirements are covered, test results, what remains), an entry in `prompts/development-log.md`, and **a commit pushed directly to `main`** (OD-10).
 
 **Dependency chain:**
 S0 → S1 → S2 → S3 → S4 → S5 → S6 → S7 → S8 → S9 → S10 → S11 → S12 → S13 → S14 → S15 → S16 → {S17 → S18} · S19 · S20 → S21 → S22.
@@ -407,7 +431,8 @@ S0 → S1 → S2 → S3 → S4 → S5 → S6 → S7 → S8 → S9 → S10 → S1
 |---|---|---|
 | S4.1 [B] | Middleware: requestId, logging with redaction, json limit, cookie-parser, helmet, errorHandler (envelope), validate(zod) | API-002, GLB-003, SEC-002, SEC-003 |
 | S4.2 [B] | `originCheck` (CSRF), the rate-limit store (SQLite fixed window), the settings cache and the catalogue-version watcher | SEC-001, SEC-004, I §7.9 |
-| S4.3 [F] | App shell: layout, `DemoBanner`, Tailwind tokens (AA contrast), `Seo`, the error element and `not-found` | GLB-001, GLB-005, FE-001, FE-007 |
+| S4.3 [F] | **Design system foundation (§8.5):** theme tokens, font, the `components/ui` primitives, and a dev-only `/dev/styleguide` route showing every primitive and state | OD-9, FE-001, FE-004, I §7.8 |
+| S4.3b [F] | App shell built from the primitives: layout, `DemoBanner`, `Seo`, the error element and `not-found` | GLB-001, GLB-005, FE-001, FE-007 |
 | S4.4 [F] | `api-client` (envelope parsing, idempotency key per action, 401 handling hook), query keys, `AsyncState`, `ErrorMessage`, `Toast`, `ConfirmDialog` | GLB-002…004, ERR-001…003, API-003, FE-002 (the client displays server-computed values only; optimistic UI is limited to the wishlist toggle and bag quantity) |
 | **Verify** | supertest: error envelope, rejected bad Origin, rate-limit 429; Playwright: banner at 4 widths, no horizontal scroll | |
 
@@ -700,7 +725,8 @@ A script checks that every requirement, edge-case, flow and worked-example ID in
 2. SQLite concurrency approach (§6.3) and in-memory search (§7.4).
 3. The image repetition guardrails (S3.10).
 4. Interpretations SI-1 to SI-10.
-5. Git workflow: a branch per stage, which you merge.
-6. Keys: Pexels before S3.7, Mapbox before S13.
+5. Git workflow: each verified stage is committed and pushed directly to `main` (OD-10).
+6. The design system rules (§8.5).
+7. Keys: Pexels before S3.7, Mapbox before S13.
 
 Once approved, implementation starts at Stage 0, with a summary after each stage.

@@ -93,3 +93,11 @@ A short chronological record of the important steps, decisions and changes on th
 ## 2026-10-06 — Development log
 
 22. **This log created** (`prompts/development-log.md`), with the owner's working rules recorded above. `plan.md` and this log were committed.
+23. **Owner direction on UI and Git:**
+    - The UI must be exceptionally polished, consistently themed and uniform across every route (same theme, components and styling), and fully responsive.
+    - Each stage is pushed directly to `main`.
+    - **Plan changes:**
+      - `plan.md` gained **§8.5 Design system and theming**: tokens, palette, type scale, motion, a single `components/ui` library and a dev-only styleguide route.
+      - Design system step **S4.3** added.
+      - Font plan: one self-hosted variable font.
+      - Stage rules now require tests and the design check before completion, then a log entry, then a commit pushed to `main` (OD-9, OD-10).
