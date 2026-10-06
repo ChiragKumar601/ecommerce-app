@@ -123,3 +123,20 @@ A short chronological record of the important steps, decisions and changes on th
     - **WebKit is pending.** The host needs system libraries (`sudo pnpm exec playwright install-deps webkit`), which only the owner can install.
 27. **Owner chose to skip local WebKit testing.** The host libraries need `sudo`, which can't be entered from the session. WebKit is now opt-in locally (`PW_WEBKIT=1`) and always runs in CI. **Open item:** run the WebKit E2E suite locally before final acceptance (S22.1).
 28. **Stage 0 complete.** Final checks: lint, typecheck, unit tests (shared 1, backend 4, frontend 2) and E2E (Chromium, Firefox, mobile) all pass. Committed and pushed to `main`.
+
+## 2026-10-06 — Stage 1: Shared schemas and backend domain kernel (complete)
+
+29. **Built:**
+    - **`shared/validation`:** every spec §12 field rule with its exact message (name, email, phone with `+91` normalisation, login identifier, password, security answer normalisation, age, date of birth, address fields, card number with Luhn check, name on card, expiry, CVV with Amex, UPI, coupon and gift card codes, OTP, search, rating, review text, return comment, support message). A few secondary messages that §12 doesn't word (for example "Use up to 100 characters") are marked "UX" in the code.
+    - **`shared/types`:** `Money`, all 41 §13.1 error codes plus `INTERNAL_ERROR`, the error envelope, the `QuoteChange` list format, and the order, return, payment and refund status unions.
+    - **Backend `domain/`:**
+      - `money`: paise arithmetic, half-up rounding, largest remainder, Indian ₹ formatting
+      - `time`: IST dates
+      - `clock`: injectable, with a fake for tests
+      - `random`: seeded, with weighted picks
+      - `ids`
+      - `errors`: the §13 catalogue with HTTP statuses, `AppError`, and a customer-safe envelope that exposes only allow-listed details
+30. **Bugs caught by tests and fixed:**
+    - The name rule rejected Indic names, because Devanagari vowel signs are Unicode combining marks. It now allows `\p{M}`.
+    - `cryptoRandom` exceeded Node's `crypto.randomInt` range limit.
+31. **Stage 1 tests:** lint and typecheck pass. shared 26/26, backend 23/23 (including the spec's worked-example coupon and bank-offer splits and tax portions), frontend 2/2. Committed and pushed to `main`.
