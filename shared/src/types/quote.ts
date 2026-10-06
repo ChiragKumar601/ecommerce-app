@@ -1,4 +1,4 @@
-import type { Money } from './money.js';
+import type { Money } from './money.ts';
 
 /** The one change-list format used by checkout re-validation and QUOTE_CHANGED (plan §7.3, CHK-002). */
 export type QuoteChange =

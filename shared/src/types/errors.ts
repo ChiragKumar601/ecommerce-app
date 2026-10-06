@@ -62,4 +62,4 @@ export interface ErrorEnvelope {
   details?: Record<string, unknown>;
 }
 
-import type { QuoteChange } from './quote.js';
+import type { QuoteChange } from './quote.ts';

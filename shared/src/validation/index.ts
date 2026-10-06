@@ -1,2 +1,2 @@
-export * from './messages.js';
-export * from './fields.js';
+export * from './messages.ts';
+export * from './fields.ts';

@@ -153,3 +153,13 @@ A short chronological record of the important steps, decisions and changes on th
     - backend 85/85, including **WX-1 to WX-4 to the exact paise**, EC-08 to EC-11, the ₹1,999.00 / ₹1,999.01 delivery boundary, a 300-cart property test (shares sum exactly; line nets plus delivery equal the total), exhaustive state × event tests for every machine, and typo cases ("snaekers" → "sneakers").
     - shared 26/26, frontend 2/2, lint and typecheck pass.
 34. **Implemented literally, worth knowing (PRC-009):** if credits or a gift card would cover the total *with* the HDFC offer but not *without* it, the offer is withdrawn and the small remainder is paid by card without the offer, exactly as PRC-009 states.
+
+## 2026-10-06 — Local verification checkpoint
+
+35. **Full local check requested by the owner.** Starting from a clean `pnpm install`:
+    - Lint, typecheck and all tests pass (shared 26, backend 86, frontend 2).
+    - The frontend and backend production builds succeed, and the compiled API and worker run.
+    - `pnpm db:migrate` creates the SQLite file.
+    - `dev:backend`, `dev:worker` and `dev:frontend` run together, with the proxy working end to end.
+    - E2E passes on Chromium, Firefox and mobile.
+36. **Latent bug found and fixed.** The compiled backend couldn't load runtime code from `shared/` (`ERR_MODULE_NOT_FOUND`), because `shared/` is TypeScript source with `.js` import specifiers. Nothing called it yet, but Stage 4's request validation would have crashed in production builds. Fix: `shared/` now imports with `.ts` extensions, and the base tsconfig sets `allowImportingTsExtensions`, `rewriteRelativeImportExtensions` and `erasableSyntaxOnly`. Node 24 then runs `shared/` directly, with no build step. A regression test loads `@app/shared` on plain Node.

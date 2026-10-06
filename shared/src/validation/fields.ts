@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { V } from './messages.js';
+import { V } from './messages.ts';
 
 // Field-level rules from spec §12. Composite form schemas are built from these in later stages.
 
