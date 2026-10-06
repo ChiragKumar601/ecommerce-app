@@ -140,3 +140,16 @@ A short chronological record of the important steps, decisions and changes on th
     - The name rule rejected Indic names, because Devanagari vowel signs are Unicode combining marks. It now allows `\p{M}`.
     - `cryptoRandom` exceeded Node's `crypto.randomInt` range limit.
 31. **Stage 1 tests:** lint and typecheck pass. shared 26/26, backend 23/23 (including the spec's worked-example coupon and bank-offer splits and tax portions), frontend 2/2. Committed and pushed to `main`.
+
+## 2026-10-06 — Stage 2: Pure business engines (complete)
+
+32. **Built** (`backend/src/domain`, pure, no I/O):
+    - **Pricing engine** `pricing/quote.ts` (PRC-001…012): coupon eligibility, discount and largest-remainder shares; delivery charge with a whole-rupee free-delivery shortfall; bank offer (applied, available-with-potential, or not eligible with a reason); wallet (gift card, then credits); offer withdrawn when the wallet covers the total (PRC-009); tax portion including 18% on delivery; COD rule.
+    - **Change list** `pricing/quoteDiff.ts` (CHK-002, PAY-006).
+    - **Refund allocation** `refunds/allocate.ts` (RFD-001…004, 007).
+    - **Declarative state machines** for order, line, return, payment attempt, refund, gift card, review and lock (§7). Anything not listed → `ACTION_NOT_ALLOWED`.
+    - **Helpers:** discount %, the Recommended score, and the search tokenizer with bounded Levenshtein distance (SRC-004).
+33. **Stage 2 tests:**
+    - backend 85/85, including **WX-1 to WX-4 to the exact paise**, EC-08 to EC-11, the ₹1,999.00 / ₹1,999.01 delivery boundary, a 300-cart property test (shares sum exactly; line nets plus delivery equal the total), exhaustive state × event tests for every machine, and typo cases ("snaekers" → "sneakers").
+    - shared 26/26, frontend 2/2, lint and typecheck pass.
+34. **Implemented literally, worth knowing (PRC-009):** if credits or a gift card would cover the total *with* the HDFC offer but not *without* it, the offer is withdrawn and the small remainder is paid by card without the offer, exactly as PRC-009 states.
