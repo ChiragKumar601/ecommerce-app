@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Validation schemas and cross-boundary types shared by frontend and backend (plan §4.3). No business logic.",
+  "description": "Validation schemas and cross-boundary types shared by frontend and backend (plan \u00a74.3). No business logic.",
   "exports": {
     ".": "./src/index.ts"
   },
@@ -16,5 +16,6 @@
   },
   "devDependencies": {
     "vitest": "^5.0.3"
-  }
+  },
+  "sideEffects": false
 }

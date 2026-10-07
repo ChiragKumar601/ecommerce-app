@@ -255,4 +255,35 @@ A short chronological record of the important steps, decisions and changes on th
     - **4 px of horizontal scroll at 360 px.** Fixed with a compact "W&Co." wordmark below 400 px, keeping 44 px touch targets per FE-004.
     - Drawer focus return made explicit.
     - Test fixes: exact role names, waiting for site data, and scoping to `main`.
-59. **Tests:** lint and typecheck pass; backend 136, frontend 12, shared 26; E2E 50 passed on Chromium, Firefox and mobile (4 desktop-only tests skipped on mobile), including axe.
+59. **Tests:** lint and typecheck pass; backend 135, frontend 12, shared 26; E2E 50 passed on Chromium, Firefox and mobile (4 desktop-only tests skipped on mobile), including axe.
+
+## 2026-10-07 — Stage 6: Listings (complete)
+
+60. **Backend:**
+    - **Catalogue read model** (`services/catalogue/snapshot.ts`): active products, nodes, variants and images, held in memory per catalogue version and warmed at server start. Stock refreshes on a 3 s TTL and ratings on 30 s (within REV-011's 1 minute). Purchase decisions will always re-check the DB. Loading uses flat queries joined in memory, because Prisma's nested includes exceed SQLite's bound-parameter limit at 2,930 products.
+    - **`GET /products`** (`listProducts`):
+      - Scopes: node, all, best-seller, bank-offer, search (search is used from S8).
+      - Filters: gender, category, brand, price on the card price, colour, discount buckets, size (only available variants), rating, in-stock, inclusive sizing, and the bank-offer chip.
+      - Facets are disjunctive: each facet ignores its own selection. Facets with no values are omitted.
+      - Sorts follow PLP-003, with out-of-stock always last and a stable id tie-break.
+      - Pages of 24 with an opaque cursor, plus `totalCount`.
+      - `prune=1` drops filter values that have no matches (PLP-009). Chip labels come from the API.
+    - Card alt text describes the product rather than the stock photo's original caption.
+    - Steady-state listing latency in process is p50 15 ms / p95 23 ms on the full catalogue (gate: 200 ms).
+61. **Shared:** listing query schema and response types; zod-free listing constants (`shared/src/constants`). `@app/shared` is now `sideEffects: false`, so client imports don't pull zod into the main bundle.
+62. **Frontend:**
+    - **Routes:** `/shop/:section`, `/shop/all`, `/:section/:category/:sub?`, `/collections/best-seller-styles`, `/offers/hdfc`. Static loaders run in parallel with the lazily loaded page.
+    - **ListingPage:** desktop sidebar ≥ 1024 px; Filter and Sort bottom sheets below that, staged until Apply; chips with scope-preserving Clear all; "N items" count; previous results kept (dimmed) while a new filter loads.
+    - **Infinite grid:** IntersectionObserver, a "Load more" fallback when a page fails, and "You've seen all items" at the end.
+    - **PLP-009 carry-over:** applies only on forward navigation to a *different* listing in the same section, pruned by the API. Back/forward and reloads show exactly what the URL says.
+    - **`ProductCard`** and **guest wishlist** on the new `lib/device-store.ts` (30-day expiry, in-memory fallback, cross-tab sync).
+    - New `--header-h` token for sticky offsets.
+63. **Bugs found and fixed while testing:**
+    - Prisma parameter-limit crash.
+    - React Compiler lint: ref read during render, and setState in an effect. Replaced with `keepPreviousData` and a keyed remount.
+    - A `ul role="radiogroup"` orphaned its `li` items (axe).
+    - Clear all re-applied carried filters on the same listing.
+    - **Scroll restoration on Back failed** because route errors replaced the whole layout, including `<ScrollRestoration>`. Error boundaries now sit inside the layout, which also keeps the header and search on 404s (GLB-005). That exposed a title handle throwing without loader data, so `Seo` now tolerates it and error pages set their own title.
+    - A focusable invisible "Apply price" button was removed.
+    - Main bundle: zod had been pulled in (189.8 KB gzip) → 163.4 KB after the fix (budget 170; the Stage 5 baseline rebuilt today is 152.5 KB).
+64. **Tests:** lint and typecheck pass; shared 26, backend 154 (+19 listing integration tests on a hand-written fixture: every scope, filter, facet, sort, cursor and pruning), frontend 17 (+5 URL-state tests); E2E 77 passed / 10 viewport-skipped on Chromium, Firefox and mobile, including PLP-007/008/009/010/014, the bank-offer chip and axe. **Not done:** Lighthouse is not installed yet. The performance gate for this stage was the bundle budget plus API latency; Lighthouse runs are deferred to Stage 22 (hardening).

@@ -89,9 +89,12 @@
   :root {
     --page-gutter: 1rem;
     --header-z: 40;
+    /* Sticky header height (h-16 / lg:h-[4.5rem] in Header), for elements that stick below it. */
+    --header-h: 4rem;
     color-scheme: light;
   }
   @media (min-width: 48rem) { :root { --page-gutter: 1.5rem; } }
+  @media (min-width: 64rem) { :root { --header-h: 4.5rem; } }
   @media (min-width: 80rem) { :root { --page-gutter: 2rem; } }
 
   html { -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; }

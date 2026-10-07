@@ -1,9 +1,11 @@
 import { Search } from 'lucide-react';
 import { Form, Link } from 'react-router';
+import { useDocumentTitle } from '../components/layout/Seo';
 import { Button, EmptyState, Input, PageLayout } from '../components/ui';
 
 /** Page not found, with search and a link home (GLB-005). */
 export function NotFound() {
+  useDocumentTitle('Page not found');
   return (
     <PageLayout narrow>
       <EmptyState
