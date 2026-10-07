@@ -399,6 +399,7 @@ model Account {
   giftCards                   AccountGiftCard[]
   supportRequests             SupportRequest[]
   addresses                   Address[]
+  checkouts                   CheckoutSession[]
   deletionRequestedAt         DateTime?
 }
 
@@ -599,4 +600,43 @@ model Address {
   updatedAt      DateTime @updatedAt
 
   @@index([accountId, createdAt])
+}
+
+// ───────────────────────── M8 checkout & quotes (Stage 14) ─────────────────────────
+
+/// The current checkout attempt, kept on the server so it survives a session expiry (CHK-007).
+model CheckoutSession {
+  id                   String   @id
+  accountId            String
+  account              Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  source               String // 'bag' | 'buy_now'
+  /// [{ variantId, quantity }] — the bag's lines at checkout start, or the Buy Now item.
+  lines                Json
+  couponCode           String?
+  addressId            String?
+  /// Phone used for this order only, when it belongs to another account (CHK-003, EC-14).
+  contactPhone         String?
+  step                 String   @default("address") // 'address' | 'summary' | 'payment'
+  /// Re-validation changes the customer must acknowledge before paying (CHK-002).
+  pendingChanges       Json?
+  /// Gift card, credits, method, card (S15).
+  paymentSelection     Json?
+  createdAt            DateTime
+  updatedAt            DateTime @updatedAt
+  expiresAt            DateTime
+
+  @@index([accountId, createdAt])
+}
+
+/// Quotes shown at checkout and payment (API-006, PR-25). Pay sends the quoteId it showed.
+model Quote {
+  id         String   @id
+  accountId  String
+  checkoutId String?
+  orderId    String?
+  /// The engine's output plus the inputs Pay needs to compare (prices, coupon, wallet, method).
+  payload    Json
+  createdAt  DateTime
+
+  @@index([createdAt])
 }

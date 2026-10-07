@@ -132,14 +132,15 @@ describe('accounts and authentication (S10)', () => {
       };
       const known: number[] = [];
       const unknown: number[] = [];
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 16; i++) {
         t.clock.advance(61_000);
         await post(request(t.app), '/auth/login', { identifier: 'ravi@example.com', password: 'secret123' });
         known.push(await time('ravi@example.com'));
         unknown.push(await time(`timing${i}@example.com`));
       }
-      const median = (xs: number[]) => xs.sort((a, b) => a - b)[Math.floor(xs.length / 2)]!;
-      const [k, u] = [median(known), median(unknown)];
+      // Lower quartile: the cost of the work itself, least disturbed by other test files sharing the CPU.
+      const quartile = (xs: number[]) => xs.sort((a, b) => a - b)[Math.floor(xs.length / 4)]!;
+      const [k, u] = [quartile(known), quartile(unknown)];
       expect(Math.abs(k - u) / Math.max(k, u)).toBeLessThan(0.2);
     });
   });

@@ -140,7 +140,7 @@ export class AppError extends Error {
 }
 
 /** Detail keys safe to expose to the client; anything else stays server-side. */
-const PUBLIC_DETAIL_KEYS = new Set(['minutes', 'available', 'item', 'pincode', 'reason', 'shortfall', 'context', 'orderId', 'lines']);
+const PUBLIC_DETAIL_KEYS = new Set(['minutes', 'available', 'item', 'pincode', 'reason', 'shortfall', 'context', 'orderId', 'lines', 'pending']);
 
 /** Envelope for unexpected errors: generic text, nothing internal (GLB-003). */
 export function internalErrorEnvelope(): ErrorEnvelope {

@@ -451,3 +451,26 @@ A short chronological record of the important steps, decisions and changes on th
     - **Deferred parts (PR-09) done:** the bag shows the customer's default or selected address with "Change" and "Delivery by" (BAG-010), and the PDP pincode defaults to the default address for customers (PDP-007).
     - **Mapbox token:** none is configured, so the app goes straight to manual entry. The live map path is built but **not yet verified against Mapbox**. Set `VITE_MAPBOX_TOKEN` in `frontend/.env.local` to enable and check it.
 92. **Tests:** lint and typecheck pass; backend 258 (+7 addresses); frontend 19; E2E 198 passed / 16 viewport-skipped, including UF-14 with Mapbox blocked (manual entry, unserviceable address saved and flagged), default switching and deletion, bag delivery block and Change, PDP default pincode, and axe. The address dialog was checked at 360 and 1280 px.
+
+## 2026-10-07 — Stage 14: Checkout (complete)
+
+93. **Backend:**
+    - Migration M8: `CheckoutSession` (source, lines, coupon, address, contact phone, step, pending changes, payment selection; kept on the server for CHK-007) and `Quote` (stored only for checkout and payment, PR-25).
+    - `POST /checkout`:
+      - bag or Buy Now source; the pending-order check (wired to orders in S15)
+      - a flagged or empty bag → `CHECKOUT_BLOCKED`
+      - re-validation diffs the quote the customer saw (last-seen prices, the bag's coupon) against a fresh one with the shared `quoteDiff`, so price changes, removed coupons (with reason), delivery and total changes are listed (EC-02, EC-03)
+      - Buy Now checks stock and activity and ignores the bag coupon
+      - the default serviceable address is preselected (falling back to the most recent serviceable one when the default isn't deliverable)
+    - Further operations: acknowledge changes; phone (saved, or "this order only" when it belongs to another account, EC-14); address (own and serviceable only); coupon (bag rules, kept in step with the bag for bag checkouts); Buy Now quantity within stock; and step (needs a phone and an address to leave the Address step).
+    - Every view stores a quote and returns its `quoteId` (API-006).
+94. **Frontend:**
+    - `/checkout` and `/checkout/buy-now?variant=` start a checkout and continue at `/checkout?c=<id>`.
+    - Stepper; `ChangeSummary` with "Continue with these changes"; phone step; address step (unserviceable addresses shown but not selectable; add a new one inline); summary step (items, Buy Now quantity, coupon, address with Change); the price summary from the quote.
+    - `PendingOrderDialog` (Retry / Cancel), wired to orders in S15.
+    - Session expiry mid-checkout opens the login dialog and resumes on the same step (UF-15).
+    - The payment step is a placeholder until S15.
+95. **Bugs and flakiness fixed:**
+    - New addresses at checkout now default the recipient phone to the number just entered (stale session data).
+    - The login-timing test now compares lower quartiles over 16 samples, so CPU contention from parallel test files doesn't fail it. It was stable over 3 full runs.
+96. **Tests:** lint and typecheck pass; backend 266 (+8 checkout: start and stored quote, EC-02, EC-03, CHECKOUT_BLOCKED, Buy Now with quantity and bag untouched, EC-14, address serviceability and step persistence with AUTHZ-002, coupon at checkout); frontend 19; E2E 212 passed / 16 viewport-skipped, including the bag → checkout flow, the unserviceable address (end of UF-14), Buy Now and UF-15.

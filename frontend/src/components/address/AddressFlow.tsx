@@ -23,13 +23,13 @@ function StaticPreview({ lat, lng }: { lat: number; lng: number }) {
   return <img src={src} alt="Map showing the chosen location" width={480} height={160} className="h-32 w-full rounded-md object-cover" loading="lazy" />;
 }
 
-function DetailsForm({ address, fill, notice, onSaved, onBackToMap }: { address?: Address; fill: PlaceFill | null; notice: string | null; onSaved: (a: Address) => void; onBackToMap?: () => void }) {
+function DetailsForm({ address, fill, notice, onSaved, onBackToMap, defaultPhone }: { address?: Address; fill: PlaceFill | null; notice: string | null; onSaved: (a: Address) => void; onBackToMap?: () => void; defaultPhone?: string | null }) {
   const account = useAccount();
   const states = useStates();
   const coords = fill ? { latitude: fill.latitude, longitude: fill.longitude } : address?.latitude != null ? { latitude: address.latitude, longitude: address.longitude! } : null;
   const f = useZodForm(addressSchema, {
     recipientName: address?.recipientName ?? account?.name ?? '',
-    recipientPhone: address?.recipientPhone.replace(/^\+91/, '') ?? account?.phone?.replace(/^\+91/, '') ?? '',
+    recipientPhone: (address?.recipientPhone ?? defaultPhone ?? account?.phone ?? '').replace(/^\+91/, ''),
     houseFlat: address?.houseFlat ?? '',
     building: address?.building ?? '',
     streetArea: fill?.streetArea ?? address?.streetArea ?? '',
@@ -93,7 +93,7 @@ function DetailsForm({ address, fill, notice, onSaved, onBackToMap }: { address?
  * link is always visible on the map step; map failures open the manual details step with a message.
  * Usable from Saved Addresses, the bag's "Change" and checkout (ADDR-008).
  */
-export function AddressDialog({ open, onOpenChange, address, onSaved }: { open: boolean; onOpenChange: (o: boolean) => void; address?: Address; onSaved?: (a: Address) => void }) {
+export function AddressDialog({ open, onOpenChange, address, onSaved, defaultPhone }: { open: boolean; onOpenChange: (o: boolean) => void; address?: Address; onSaved?: (a: Address) => void; defaultPhone?: string | null }) {
   const [step, setStep] = useState<'map' | 'details'>(TOKEN ? 'map' : 'details');
   const [fill, setFill] = useState<PlaceFill | null>(null);
   const [notice, setNotice] = useState<string | null>(TOKEN ? null : MAP_FAILED);
@@ -117,6 +117,7 @@ export function AddressDialog({ open, onOpenChange, address, onSaved }: { open: 
           address={address}
           fill={fill}
           notice={notice}
+          defaultPhone={defaultPhone}
           onBackToMap={TOKEN && !notice ? () => setStep('map') : undefined}
           onSaved={(a) => { onSaved?.(a); onOpenChange(false); }}
         />
