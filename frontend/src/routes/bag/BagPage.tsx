@@ -5,6 +5,9 @@ import { Link, useNavigate } from 'react-router';
 import { promptLogin } from '../../components/auth/AuthDialogs';
 import { Badge, Button, Dialog, EmptyState, ErrorState, InlineMessage, Input, PageLayout, Select, Skeleton } from '../../components/ui';
 import { toast } from '../../components/ui/toast';
+import { AddressPicker } from '../../components/address/AddressPicker';
+import { AddressDialog } from '../../components/address/AddressFlow';
+import { pickDeliveryAddress, selectAddress, useAddresses, useSelectedAddressId } from '../../features/address';
 import { bagAction, moveLineToWishlist, useBag, type BagLineView, type BagView } from '../../features/bag';
 import { useAccount } from '../../features/session';
 import { useWishlistIds } from '../../features/wishlist';
@@ -172,6 +175,35 @@ export function PriceSummary({ bag, title = 'Price details' }: { bag: Pick<BagVi
   );
 }
 
+/** Delivery details for customers (BAG-010): the default or selected address with "Change" and "Delivery by". */
+function CustomerDelivery() {
+  const q = useAddresses();
+  const selectedId = useSelectedAddressId();
+  const [picking, setPicking] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const a = pickDeliveryAddress(q.data?.items, selectedId);
+  if (!q.data) return <Skeleton className="h-20 w-full rounded-lg" />;
+  return (
+    <section aria-label="Delivery details" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-surface p-4">
+      {a ? (
+        <div className="flex min-w-0 items-start gap-2 text-small">
+          <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <div className="min-w-0">
+            <p>Deliver to <span className="font-bold">{a.recipientName}, {a.pincode}</span> <span className="text-ink-muted">({a.label})</span></p>
+            <p className="truncate text-ink-muted">{a.oneLine}</p>
+            <p className={cn('font-semibold', a.serviceable ? 'text-success' : 'text-danger')}>{a.delivery.message}</p>
+          </div>
+        </div>
+      ) : (
+        <p className="text-small text-ink-soft">Add an address to see when your order will arrive.</p>
+      )}
+      <Button size="sm" variant="secondary" onClick={() => (a ? setPicking(true) : setAdding(true))}>{a ? 'Change' : 'Add address'}</Button>
+      {picking && <AddressPicker open onOpenChange={setPicking} selectedId={a?.id ?? null} onSelect={(x) => { selectAddress(x.id); setPicking(false); }} />}
+      {adding && <AddressDialog open onOpenChange={setAdding} onSaved={(x) => selectAddress(x.id)} />}
+    </section>
+  );
+}
+
 /** Delivery details for guests (BAG-010): remembered pincode with "Delivery by", or a prompt. */
 function GuestDelivery() {
   const remembered = useDevice((d) => d.pincode);
@@ -292,7 +324,7 @@ export function BagPage() {
       <h1 className="mb-6 text-h2 font-bold md:text-h1">Bag <span className="text-h4 font-normal text-ink-muted">({data.units} item{data.units === 1 ? '' : 's'})</span></h1>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-8">
         <div className="flex min-w-0 flex-col gap-4">
-          {!account && <GuestDelivery />}
+          {account ? <CustomerDelivery /> : <GuestDelivery />}
           {data.quote.bankOffer.text && (
             <p className="flex items-start gap-2 rounded-lg border border-line bg-surface p-4 text-small"><BadgePercent className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden="true" /><span className="font-semibold">{data.quote.bankOffer.text}</span></p>
           )}

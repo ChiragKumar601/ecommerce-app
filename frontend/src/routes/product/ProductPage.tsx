@@ -6,6 +6,7 @@ import { promptLogin } from '../../components/auth/AuthDialogs';
 import { toast } from '../../components/ui/toast';
 import { bagAction } from '../../features/bag';
 import { useAccount } from '../../features/session';
+import { useAddresses } from '../../features/address';
 import { queryClient } from '../../lib/query';
 import { Gallery } from '../../components/product/Gallery';
 import { RecommendationRail } from '../../components/product/Rail';
@@ -98,7 +99,16 @@ function SizeSelector({ variants, selected, onSelect, error, sizeGuide }: { vari
 
 /** Pincode check (PDP-007): guest pincode remembered on the device. */
 function PincodeCheck() {
-  const remembered = useDevice((d) => d.pincode);
+  const account = useAccount();
+  const addresses = useAddresses();
+  const devicePin = useDevice((d) => d.pincode);
+  // PDP-007: a logged-in customer's pincode defaults to their default address.
+  const defaultPin = addresses.data?.items.find((a) => a.isDefault)?.pincode ?? null;
+  const remembered = account ? defaultPin ?? devicePin : devicePin;
+  return <PincodeCheckForm key={remembered ?? 'none'} remembered={remembered} />;
+}
+
+function PincodeCheckForm({ remembered }: { remembered: string | null }) {
   const [value, setValue] = useState(remembered ?? '');
   const [pin, setPin] = useState<string | null>(remembered);
   const [error, setError] = useState<string | null>(null);

@@ -10,6 +10,8 @@ const API_TARGET = process.env['API_TARGET'] ?? 'http://localhost:4000';
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: { port: 5173, strictPort: true, proxy: { '/api': API_TARGET, '/media': API_TARGET } },
+  // mapbox-gl is one large chunk, but it loads only on the address map step (FE-006).
+  build: { chunkSizeWarningLimit: 1800 },
   preview: { port: 4173, strictPort: true, proxy: { '/api': API_TARGET, '/media': API_TARGET } },
   test: {
     environment: 'jsdom',

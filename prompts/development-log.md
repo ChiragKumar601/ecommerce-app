@@ -436,3 +436,18 @@ A short chronological record of the important steps, decisions and changes on th
     - Reusable `CardFields`, `RedeemGiftCardForm` and `DemoCardWarning` for the payment step (S15).
     - Account links to Orders and Saved Addresses go live in S16 and S13.
 89. **Tests:** lint and typecheck pass; shared 26, backend 251 (+10: profile rules, credits, gift card redeem/replay/expiry, saved-card rules and no stored number/CVV, support and deletion, AUTHZ-002 for another account's card, demo help); frontend 19; E2E 189 passed / 16 viewport-skipped, including the S12 account flows, demo help and axe on every account page. Two flaky tests were fixed (a size-picker race and a long axe sweep on Firefox) and were stable over repeated runs. Account pages checked at 360 and 1280 px with no horizontal scroll.
+
+## 2026-10-07 — Stage 13: Addresses and map (complete; map pending a Mapbox token)
+
+90. **Backend:**
+    - Migration M7: `Address` (one default per account via a partial unique index).
+    - Address API: §12 validation plus the state reference list; serviceability and "Delivery by" from the pincode list; unserviceable addresses saved and flagged; 10-address limit; the first address becomes the default; set default; deleting the default promotes the most recent (EC-13); `NOT_FOUND` for other accounts' ids.
+    - `GET /states` for the state picker.
+91. **Frontend:**
+    - `AddressDialog`: map step, then details step:
+      - The map step (`AddressMapStep`, mapbox-gl and Mapbox Geocoding v6, loaded lazily) has place search, a draggable pin with reverse-geocode prefill, "Use my current location", and a 10 s load timeout. Any failure goes to the manual step with "Map unavailable — enter your address manually.", and "Enter address manually" is always visible (ADDR-003, INT-005).
+      - The details step defaults the recipient to the profile, shows a static map preview when there are coordinates, and has Home/Work/Other labels.
+    - Saved Addresses page (edit, set default, delete with confirmation, limit message). `AddressPicker` is reusable from the bag and checkout (ADDR-008).
+    - **Deferred parts (PR-09) done:** the bag shows the customer's default or selected address with "Change" and "Delivery by" (BAG-010), and the PDP pincode defaults to the default address for customers (PDP-007).
+    - **Mapbox token:** none is configured, so the app goes straight to manual entry. The live map path is built but **not yet verified against Mapbox**. Set `VITE_MAPBOX_TOKEN` in `frontend/.env.local` to enable and check it.
+92. **Tests:** lint and typecheck pass; backend 258 (+7 addresses); frontend 19; E2E 198 passed / 16 viewport-skipped, including UF-14 with Mapbox blocked (manual entry, unserviceable address saved and flagged), default switching and deletion, bag delivery block and Change, PDP default pincode, and axe. The address dialog was checked at 360 and 1280 px.

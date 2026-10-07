@@ -398,6 +398,7 @@ model Account {
   savedCards                  SavedCard[]
   giftCards                   AccountGiftCard[]
   supportRequests             SupportRequest[]
+  addresses                   Address[]
   deletionRequestedAt         DateTime?
 }
 
@@ -568,6 +569,34 @@ model SupportRequest {
   message       String
   status        String   @default("submitted")
   createdAt     DateTime
+
+  @@index([accountId, createdAt])
+}
+
+// ───────────────────────── M7 addresses (Stage 13) ─────────────────────────
+
+/// Saved address (spec §4.4, ADDR-*). At most 10 per account; exactly one default if any exist.
+/// `serviceable` is derived from the pincode list when saved and re-checked when used.
+model Address {
+  id             String   @id
+  accountId      String
+  account        Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  recipientName  String
+  recipientPhone String
+  houseFlat      String
+  building       String?
+  streetArea     String
+  landmark       String?
+  city           String
+  state          String
+  pincode        String
+  labelType      String // 'Home' | 'Work' | 'Other'
+  labelText      String?
+  latitude       Float?
+  longitude      Float?
+  isDefault      Boolean  @default(false)
+  createdAt      DateTime
+  updatedAt      DateTime @updatedAt
 
   @@index([accountId, createdAt])
 }
