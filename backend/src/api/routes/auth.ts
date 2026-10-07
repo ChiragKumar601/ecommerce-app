@@ -8,6 +8,7 @@ import { accountId, clearSessionCookie, requireAuth, setSessionCookie } from '..
 import {
   addRecentSearches, clearRecentSearches, completeReset, getAccount, listRecentSearches, login, publicAccount, revokeSession, signup, verifyReset,
 } from '../../services/auth.js';
+import { hasUnseenOrderUpdates } from '../../services/orders/view.js';
 
 /** Auth (S10): sign-up, login, password reset, logout, session; account recent searches. */
 export function authRouter(ctx: AppContext): Router {
@@ -58,7 +59,7 @@ export function authRouter(ctx: AppContext): Router {
     res.setHeader('Cache-Control', 'no-store');
     if (req.session.status !== 'active') return res.json({ authenticated: false, expired: req.session.status === 'expired' });
     const a = await getAccount(ctx, req.session.accountId);
-    res.json({ authenticated: true, account: publicAccount(a), hasUnseenOrderUpdates: false });
+    res.json({ authenticated: true, account: publicAccount(a), hasUnseenOrderUpdates: await hasUnseenOrderUpdates(ctx, a.id) });
   }));
 
   r.get('/search/recent', requireAuth, handler(async (req, res) => res.json({ terms: await listRecentSearches(ctx, accountId(req)) })));

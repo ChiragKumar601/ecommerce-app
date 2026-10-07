@@ -24,7 +24,17 @@ const db = await createDb(`file:${target}`);
 await db.account.deleteMany();
 await db.authThrottle.deleteMany();
 await db.rateLimitBucket.deleteMany();
-await db.setting.upsert({ where: { key: 'rateLimit.perMinute' }, create: { key: 'rateLimit.perMinute', value: 10_000 }, update: { value: 10_000 } });
+// Short simulator timers so E2E can follow orders to delivery (plan §10): 2 s steps, 8 s handover window,
+// 60 s payment retry window.
+const settings: Record<string, unknown> = {
+  'rateLimit.perMinute': 10_000,
+  'sim.statusStepIntervalMs': 2_000,
+  'sim.deliveryHandoverWindowMs': 8_000,
+  'sim.paymentRetryWindowMs': 60_000,
+};
+for (const [key, value] of Object.entries(settings)) {
+  await db.setting.upsert({ where: { key }, create: { key, value: value as never }, update: { value: value as never } });
+}
 await db.$disconnect();
 writeFileSync(ready, String(Date.now()));
 console.log('[e2e] database ready');

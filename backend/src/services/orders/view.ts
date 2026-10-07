@@ -63,7 +63,9 @@ export async function ownOrder(ctx: AppContext, accountId: string, id: string) {
   return o;
 }
 
-/** Order details (ORD-003) and the confirmation page (PAY-013). Stage 16 adds tracking, OTP and actions. */
+const DELIVERY_STEPS: OrderStatus[] = ['PLACED', 'CONFIRMED', 'PACKED', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED'];
+
+/** Order details (ORD-003) and the confirmation page (PAY-013), with tracking, the OTP and the Delivery simulator. */
 export async function orderDetail(ctx: AppContext, accountId: string, id: string) {
   const o = await ownOrder(ctx, accountId, id);
   const now = ctx.clock.now();
@@ -96,6 +98,56 @@ export async function orderDetail(ctx: AppContext, accountId: string, id: string
       : null,
     timeline: o.events.map((e) => ({ status: e.toStatus, label: STATUS_LABELS[e.toStatus as OrderStatus], at: formatIstDateTime(e.at), actor: e.actor, note: e.note })),
     placedOn: istDate(o.createdAt),
+    // ORD-003: tracking from Shipped onwards (T-14).
+    tracking: o.courierName ? { courier: o.courierName, trackingId: o.trackingId } : null,
+    // DLV-001: the OTP is shown from Out for Delivery onwards.
+    deliveryOtp: o.deliveryOtp && ['OUT_FOR_DELIVERY', 'DELIVERY_ATTEMPT_FAILED', 'DELIVERED'].includes(status) && o.deliveryAttempt > 0 ? o.deliveryOtp : null,
+    // DLV-002: the simulator panel while Out for Delivery.
+    simulator: status === 'OUT_FOR_DELIVERY'
+      ? { attempt: o.deliveryAttempt, triesLeft: Math.max(0, 5 - o.otpFailures), locked: o.otpFailures >= 5, windowEndsAt: o.nextTransitionAt?.toISOString() ?? null }
+      : null,
+    deliveredAt: o.deliveredAt ? formatIstDateTime(o.deliveredAt) : null,
+    progress: {
+      steps: DELIVERY_STEPS.map((s) => ({ status: s, label: STATUS_LABELS[s] })),
+      current: DELIVERY_STEPS.indexOf(status === 'DELIVERY_ATTEMPT_FAILED' ? 'OUT_FOR_DELIVERY' : status),
+    },
+    hasUnseenUpdate: o.hasUnseenUpdate,
   };
+}
+
+const PAGE = 10;
+
+/** Orders list (ORD-002): own orders, newest first, 10 per page. */
+export async function listOrders(ctx: AppContext, accountId: string, page: number, pageSize = PAGE) {
+  const now = ctx.clock.now();
+  const [totalCount, rows] = await Promise.all([
+    ctx.db.order.count({ where: { accountId } }),
+    ctx.db.order.findMany({ where: { accountId }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * pageSize, take: pageSize, include: { lines: { orderBy: { position: 'asc' } } } }),
+  ]);
+  return {
+    items: rows.map((o) => {
+      const status = effectiveStatus(o, now);
+      const first = o.lines[0]?.productSnapshot as unknown as Snapshot | undefined;
+      const units = o.lines.reduce((n, l) => n + l.quantity, 0);
+      return {
+        id: o.id, orderNumber: o.orderNumber, date: formatIstDate(istDate(o.createdAt)), status, headline: headlineStatus(status, o.lines),
+        image: first?.image ?? null, firstItem: first ? `${first.brand} ${first.name}` : '', moreCount: Math.max(0, o.lines.length - 1), units,
+        total: money(o.total), hasUnseenUpdate: o.hasUnseenUpdate,
+      };
+    }),
+    totalCount,
+    page,
+    pageCount: Math.max(1, Math.ceil(totalCount / pageSize)),
+  };
+}
+
+/** Opening an order clears its unseen-update flag (PRF-007). */
+export async function markOrderSeen(ctx: AppContext, accountId: string, id: string) {
+  const r = await ctx.db.order.updateMany({ where: { id, accountId }, data: { hasUnseenUpdate: false } });
+  if (r.count === 0) throw new AppError('NOT_FOUND');
+}
+
+export async function hasUnseenOrderUpdates(ctx: AppContext, accountId: string): Promise<boolean> {
+  return !!(await ctx.db.order.findFirst({ where: { accountId, hasUnseenUpdate: true }, select: { id: true } }));
 }
 export type OrderDetail = Awaited<ReturnType<typeof orderDetail>>;

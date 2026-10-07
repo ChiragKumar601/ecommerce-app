@@ -44,3 +44,14 @@ export async function customerWithBag(page: Page, opts: { phone?: boolean; addre
   return { email, variantId: variant.id, productId };
 }
 
+
+/** A customer with a placed Cash on Delivery order (bag → checkout → pay through the API). */
+export async function placedCodOrder(page: Page) {
+  const who = await customerWithBag(page, { listing: 'home/furnishings/cushions' });
+  const c = await apiCall<{ id: string }>(page, 'POST', '/checkout', { source: 'bag' });
+  await apiCall(page, 'PUT', `/checkout/${c.body.id}/step`, { step: 'payment' });
+  const v = await apiCall<{ quoteId: string }>(page, 'PUT', `/checkout/${c.body.id}/payment-selection`, { method: 'cod' });
+  const att = await apiCall<{ order: { id: string; orderNumber: string } }>(page, 'POST', `/checkout/${c.body.id}/pay`, { quoteId: v.body.quoteId, payment: { method: 'cod' } });
+  if (att.status !== 201) throw new Error(`pay failed: ${att.status} ${JSON.stringify(att.body)}`);
+  return { ...who, orderId: att.body.order.id, orderNumber: att.body.order.orderNumber };
+}

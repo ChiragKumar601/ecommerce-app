@@ -507,3 +507,31 @@ A short chronological record of the important steps, decisions and changes on th
     - Outcome panel with Retry and the minutes left. Retry page `/orders/:id/pay` with locked items. Confirmation page (PAY-013). The pending-order dialog is now live.
     - Playwright can show backend logs with `PW_SERVER_LOGS=1`.
 100. **Tests:** lint and typecheck pass; shared 26, backend 279 (+13 payment: WX-1 to the paise through the API, QUOTE_CHANGED with nothing persisted, two customers on the last unit (INV-006, EC-04), duplicate idempotency key (EC-05), failure → card saved → UPI retry with the offer recomputed, the 15-minute expiry reversing stock/credits/gift card and running twice safely, EC-06, UF-06 wallet only, EC-08, COD and its limit, EC-07, EC-24, NOT_TEST_CARD and pending cancel, ownership); frontend 19; E2E 224 passed / 16 viewport-skipped, including UF-04, UF-05, UF-06 and COD. Payment and confirmation checked at 360 and 1280 px.
+
+## 2026-10-07 — Stage 16: Fulfilment, orders UI, delivery OTP (complete)
+
+101. **Backend:**
+    - `orders/fulfilment.ts`:
+      - `advanceOrders`: Placed → Confirmed → Packed → Shipped → Out for Delivery, one step per interval from the previous transition. A fictional courier and a `TRK…` tracking ID are assigned at Shipped. Out for Delivery starts the handover window and the attempt number; Delivery Attempt Failed → Out for Delivery for attempt 2 with the same OTP. Every step sets `hasUnseenUpdate`.
+      - `expireHandovers` (DLV-006).
+      - Delivery simulator confirm (correct OTP → Delivered, return windows for returnable lines, COD collected; wrong OTP → `OTP_INCORRECT`; the 5th → `OTP_LOCKED`, which ends the attempt, and on attempt 2 goes to Returned to Origin, EC-22).
+      - Reject (Rejected at Delivery). Reject and Returned to Origin restock active lines (INV-004) and release uncollected COD.
+      - Jobs are conditional on status and run twice safely; the worker runs them every 2 s.
+    - Orders list (10 per page, headline, first item, +n more, total), `POST /orders/:id/seen`, and `hasUnseenOrderUpdates` in the session (PRF-007).
+    - Order detail: tracking, OTP from Out for Delivery, simulator state, delivery progress.
+    - **Left for Stage 17:** the whole-order refunds that Rejected at Delivery and Returned to Origin must create (RFD-003). The code marks where they go.
+102. **Frontend:**
+    - Orders list.
+    - Order detail: headline badge, delivery progress plus a timestamped timeline, tracking, the OTP card ("Share this OTP…"), a visually distinct "Delivery simulator (demo)" panel (OTP confirm, tries, attempt 1 of 2, "Customer rejected parcel" with confirmation), items, address, payment breakdown with COD status, and the retry banner.
+    - The page polls every 3 s while the order is moving, and opening it clears the unseen dot.
+    - Header and account dots are live.
+    - E2E runs with 2 s steps, an 8 s handover window and a 60 s retry window (`prepare-e2e-db`).
+103. **Tests:** lint and typecheck pass; shared 26, backend 287 (+8 fulfilment with the fake clock across §7.1: step timing and run-twice safety, tracking and OTP visibility, Delivered with return windows and COD collected, the OTP lockout and attempt 2 with the same OTP, EC-22, UF-09, reject with restock, an OTP-vs-scheduler race applying exactly one transition (API-008), list pagination and ownership); frontend 19; E2E 236 passed / 16 viewport-skipped, including UF-07, UF-09, rejection, the unseen dots and axe on the orders pages. The order page was checked at 360 and 1280 px.
+
+## 2026-10-07 — Stages 10–16 summary
+
+104. **Done:** all seven stages, each tested, logged, committed and pushed.
+    - **Open items for the owner:**
+      - Mapbox token, to verify the live map step.
+      - The WebKit E2E run, which is still pending since Stage 0.
+    - **Next:** Stage 17 (refunds and cancellation), which also adds the whole-order refunds for rejected and returned-to-origin orders.

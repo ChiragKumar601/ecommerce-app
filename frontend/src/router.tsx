@@ -38,6 +38,8 @@ const accountRoutes: RouteObject[] = [
   { path: 'account/gift-cards', loader: requireAuth, lazy: accountPage('GiftCardsPage'), handle: { title: () => 'Gift cards' } },
   { path: 'account/cards', loader: requireAuth, lazy: accountPage('SavedCardsPage'), handle: { title: () => 'Saved cards' } },
   { path: 'account/support', loader: requireAuth, lazy: accountPage('ContactUsPage'), handle: { title: () => 'Contact us' } },
+  { path: 'account/orders', loader: requireAuth, lazy: async () => ({ Component: (await import('./routes/account/OrdersPages')).OrdersPage }), handle: { title: () => 'Orders' } },
+  { path: 'account/orders/:id', loader: requireAuth, lazy: async () => ({ Component: (await import('./routes/account/OrdersPages')).OrderDetailPage }), handle: { title: () => 'Order details' } },
   { path: 'account/addresses', loader: requireAuth, lazy: async () => ({ Component: (await import('./routes/account/AddressesPage')).AddressesPage }), handle: { title: () => 'Saved addresses' } },
   { path: 'checkout', loader: requireAuth, lazy: async () => ({ Component: (await import('./routes/checkout/CheckoutPage')).CheckoutRoute }), handle: { title: () => 'Checkout' } },
   { path: 'checkout/buy-now', loader: requireAuth, lazy: async () => ({ Component: (await import('./routes/checkout/CheckoutPage')).CheckoutRoute }), handle: { title: () => 'Checkout' } },
