@@ -66,15 +66,36 @@ describe('image relevance in assignment', () => {
     expect(primaries.every((im) => im.photo.alt.includes('T-shirt'))).toBe(true);
   });
 
-  it('OD-14: with nothing relevant, still uses real photos (own search first, then any), never event photos', () => {
+  it('owner request (2026-10-07): only photos that show the product type are used — otherwise the placeholder', () => {
     const m = manifest({ 'men t-shirt': 4, 'women sarees': 6 });
-    m.queries['men t-shirt']!.forEach((p, i) => (p.alt = i === 0 ? 'Singer at the concert' : 'Ferris wheel at the fair'));
+    m.queries['men t-shirt']!.forEach((p) => (p.alt = 'Ferris wheel at the fair'));
+    m.queries['women sarees']!.forEach((p) => (p.alt = 'Woman in a silk saree'));
     const r = assignImages(products, m, order, () => []);
-    expect(r.placeholderProductIds).toEqual([]);
-    expect(products.every((p) => r.images.some((im) => im.productId === p.id && im.order === 0))).toBe(true);
-    expect(r.images.some((im) => im.photo.alt.includes('concert'))).toBe(false);
-    const primaries = products.map((p) => r.images.find((im) => im.productId === p.id && im.order === 0)!.photo.id);
-    for (let i = 1; i < primaries.length; i += 1) expect(primaries[i]).not.toBe(primaries[i - 1]);
+    expect(r.placeholderProductIds).toEqual(products.map((p) => p.id));
+    expect(r.images).toEqual([]);
+  });
+
+  it('never uses unsuitable photos, even when their title names the product type', () => {
+    const m = manifest({ 'men t-shirt': 6 });
+    m.queries['men t-shirt']!.slice(0, 5).forEach((p, i) => (p.alt = `Topless man holding a T-shirt ${i}`));
+    const r = assignImages(products, m, order, () => []);
+    expect(r.images.some((im) => /topless/i.test(im.photo.alt))).toBe(false);
+  });
+
+  it('with approvals, a subcategory uses only photos approved for its label', () => {
+    const m = manifest({ 'men t-shirt': 6 });
+    m.approvedFor = new Map([['men0', new Set(['topwear/t-shirts'])], ['men1', new Set(['topwear/t-shirts'])], ['men2', new Set(['topwear/shirts'])]]);
+    const r = assignImages(products, m, order, () => []);
+    expect(new Set(r.images.map((im) => im.photo.id))).toEqual(new Set(['men0', 'men1']));
+  });
+
+  it('innerwear never borrows photos from sibling subcategories', () => {
+    const briefs = Array.from({ length: 4 }, (_, i) => ({ ...product(`b${i}`, 10 - i, 'men/innerwear/briefs'), family: 'intimate' }) as unknown as GenProduct);
+    const vests = Array.from({ length: 4 }, (_, i) => ({ ...product(`v${i}`, 10 - i, 'men/innerwear/vests'), family: 'intimate' }) as unknown as GenProduct);
+    const m = manifest({ 'men t-shirt': 6 });
+    m.approvedFor = new Map(m.queries['men t-shirt']!.map((p) => [p.id, new Set(['innerwear/vests'])]));
+    const r = assignImages([...briefs, ...vests], m, order, () => []);
+    expect(r.placeholderProductIds.sort()).toEqual(briefs.map((p) => p.id).sort());
   });
 
   it('uses the placeholder only when the manifest has no photos at all', () => {

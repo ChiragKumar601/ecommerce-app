@@ -87,7 +87,8 @@ export function planFor(path: string, name: string): SubcatPlan | null {
             ? plan({ family: 'smartwatch', sizes: 'oneSize', gender: 'unisex', nameMode: 'simple', imageQuery: 'smartwatch' })
             : plan({ family: 'watch', sizes: 'oneSize', gender: 'mixed-men', nameMode: 'simple', imageQuery: `men ${noun}`.toLowerCase() });
         case 'innerwear':
-          return plan({ family: 'intimate', sizes: 'apparelMen', gender: men, nameMode: 'simple', imageQuery: `men ${noun} underwear`.toLowerCase() });
+          return plan({ family: 'intimate', sizes: 'apparelMen', gender: men, nameMode: 'simple', // Product-only photos (museum and flat-lay shots), never underwear worn on the body (owner request, 2026-10-07).
+          imageQuery: noun.toLowerCase() === 'vest' ? 'undershirt MET' : noun.toLowerCase() === 'thermals' ? 'folded thermals underwear' : 'underpants AM' });
         case 'sleepwear':
           return plan({ family: 'sleep', sizes: 'apparelMen', gender: men, imageQuery: 'men pajamas' });
       }
@@ -115,7 +116,7 @@ export function planFor(path: string, name: string): SubcatPlan | null {
         case 'activewear':
           return plan({ family: 'active', sizes: sub === 'sports-bras' ? 'bra' : 'apparelWomen', gender: women, sizeGuide: 'women-tops' });
         case 'lingerie':
-          return plan({ family: 'intimate', sizes: sub === 'bras' ? 'bra' : 'apparelWomen', gender: women, nameMode: 'simple', sizeGuide: sub === 'bras' ? 'bras' : undefined, imageQuery: `women ${noun} lingerie`.toLowerCase() });
+          return plan({ family: 'intimate', sizes: sub === 'bras' ? 'bra' : 'apparelWomen', gender: women, nameMode: 'simple', sizeGuide: sub === 'bras' ? 'bras' : undefined, imageQuery: noun.toLowerCase() === 'panties' ? 'underpants AM' : noun.toLowerCase() === 'shapewear' ? 'girdle garment museum' : `${noun} on hanger`.toLowerCase() });
         case 'sleepwear':
           return plan({ family: 'sleep', sizes: 'apparelWomen', gender: women, imageQuery: 'women pajamas' });
         case 'handbags':
@@ -136,9 +137,10 @@ export function planFor(path: string, name: string): SubcatPlan | null {
       switch (category) {
         case 'boys-clothing':
         case 'girls-clothing':
-          if (sub === 'innerwear') return plan({ family: 'intimate', sizes: 'kids', gender: kidGender, brandGroup: 'kids', nameMode: 'simple', imageQuery: 'kids underwear' });
+          if (sub === 'innerwear') return plan({ family: 'intimate', sizes: 'kids', gender: kidGender, brandGroup: 'kids', nameMode: 'simple', imageQuery: "children's underwear museum" });
           if (sub === 'nightwear') return plan({ family: 'sleep', sizes: 'kids', gender: kidGender, brandGroup: 'kids', imageQuery: 'kids pajamas' });
-          return plan({ family: 'kidsWear', sizes: 'kids', gender: kidGender, sizeGuide: 'kids-clothing', imageQuery: `${kidGender === 'boys' ? 'boy' : 'girl'} ${noun}`.toLowerCase() });
+          return plan({ family: 'kidsWear', sizes: 'kids', gender: kidGender, sizeGuide: 'kids-clothing', // "boy shorts" is also a lingerie term: kids' shorts search as children's clothing.
+          imageQuery: (noun.toLowerCase() === 'shorts' ? `children shorts ${kidGender === 'boys' ? 'boy' : 'girl'}` : `${kidGender === 'boys' ? 'boy' : 'girl'} ${noun}`).toLowerCase() });
         case 'infants':
           return plan({ family: 'kidsWear', sizes: 'infant', gender: 'infant', imageQuery: `baby ${noun}`.toLowerCase() });
         case 'baby-care':

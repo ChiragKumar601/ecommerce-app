@@ -1,15 +1,15 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { ImageManifest } from './catalogue/images.js';
-import { isRelevant } from './catalogue/relevance.js';
+import { isRelevant, isUnsuitablePhoto } from './catalogue/relevance.js';
 import { SEED_DIR } from './tree.js';
 
 const read = <T>(rel: string): T => JSON.parse(readFileSync(resolve(SEED_DIR, rel), 'utf8')) as T;
 
 export interface CouponJson { code: string; description: string; type: 'percent' | 'flat'; value: number; maxDiscount: number | null; minEligibleValue: number; eligibleNodeIds: string[]; validFrom: string; validTo: string; perCustomerLimit: number; active: boolean }
 export interface BankOfferJson { id: string; bankName: string; cardTypes: string[]; percent: number; maxDiscount: number; minEligibleValue: number; validFrom: string; validTo: string; summary: string; termsText: string; active: boolean }
-export interface SlideJson { id: string; headline: string; subheadline: string; ctaLabel: string; href: string; imageQuery: string; imageKeywords: string[]; order: number; active: boolean }
-export interface CardJson { id: string; name: string; discountText: string; href: string; imageQuery: string; imageKeywords: string[]; order: number }
+export interface SlideJson { id: string; headline: string; subheadline: string; ctaLabel: string; href: string; imageQuery: string; imageKeywords: string[]; imageId?: string; order: number; active: boolean }
+export interface CardJson { id: string; name: string; discountText: string; href: string; imageQuery: string; imageKeywords: string[]; imageId?: string; order: number }
 
 /** All config, content, reference and demo seed files (spec §5, DAT-004…009). */
 export function loadSeedFiles() {
@@ -45,19 +45,54 @@ export function loadSeedFiles() {
   };
 }
 
+/** Photo ids removed after review (owner request, 2026-10-07); see seed-data/images/blocklist.json. */
+export function loadImageBlocklist(): Set<string> {
+  const file = resolve(SEED_DIR, 'images/blocklist.json');
+  return existsSync(file) ? new Set(Object.keys((JSON.parse(readFileSync(file, 'utf8')) as { ids: Record<string, unknown> }).ids)) : new Set();
+}
+
+/**
+ * Photo ids reviewed and approved one by one (owner request, 2026-10-07). When the file exists, only
+ * these photos are used; newly fetched photos stay unused until they're reviewed and added.
+ */
+export function loadImageApprovals(): Map<string, Set<string>> | null {
+  const file = resolve(SEED_DIR, 'images/approved.json');
+  if (!existsSync(file)) return null;
+  const ids = (JSON.parse(readFileSync(file, 'utf8')) as { ids: Record<string, { for?: string[] }> }).ids;
+  return new Map(Object.entries(ids).map(([id, v]) => [id, new Set(v.for ?? [])]));
+}
+
+/** The image manifest limited to approved photos (and never blocklisted or unsuitable ones). */
 export function loadImageManifest(): ImageManifest | null {
   const file = resolve(SEED_DIR, 'images/manifest.json');
-  return existsSync(file) ? (JSON.parse(readFileSync(file, 'utf8')) as ImageManifest) : null;
+  if (!existsSync(file)) return null;
+  const manifest = JSON.parse(readFileSync(file, 'utf8')) as ImageManifest;
+  const blocked = loadImageBlocklist();
+  const approved = loadImageApprovals();
+  for (const [q, photos] of Object.entries(manifest.queries)) {
+    manifest.queries[q] = photos.filter((ph) => !blocked.has(ph.id) && !isUnsuitablePhoto(ph.alt) && (!approved || approved.has(ph.id)));
+  }
+  if (approved) manifest.approvedFor = approved;
+  return manifest;
 }
 
 /**
  * First relevant photo for a content query (hero slide, category card), searching every query in
  * the manifest if the content's own query has no relevant match; otherwise a marked placeholder.
  */
-export function contentImage(manifest: ImageManifest | null, query: string, keywords: string[], avoid: Set<string> = new Set()): { url: string; alt: string } {
+export function contentImage(manifest: ImageManifest | null, query: string, keywords: string[], avoid: Set<string> = new Set(), imageId?: string): { url: string; alt: string } {
   const own = manifest?.queries[query] ?? [];
   const everywhere = Object.values(manifest?.queries ?? {}).flat();
+  // A hand-picked approved photo wins (owner request, 2026-10-07: tiles must show what they advertise).
+  const picked = imageId ? everywhere.find((ph) => ph.id === imageId) : undefined;
+  if (picked) {
+    avoid.add(picked.id);
+    return { url: picked.url, alt: picked.alt };
+  }
   const photo = [...own, ...everywhere].find((ph) => !avoid.has(ph.id) && isRelevant(ph.alt, keywords));
   if (photo) avoid.add(photo.id);
-  return photo ? { url: photo.url, alt: photo.alt } : { url: `placeholder:${query}`, alt: query };
+  // No approved photo: the section's on-theme placeholder, never an empty frame.
+  const section = query.split(' ')[0] ?? '';
+  const art = ['men', 'women', 'kids', 'home', 'beauty'].includes(section) ? section : 'gen-z';
+  return photo ? { url: photo.url, alt: photo.alt } : { url: `/media/placeholder/${art}.svg`, alt: '' };
 }

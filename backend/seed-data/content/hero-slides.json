@@ -18,7 +18,8 @@
         "sherwani",
         "ethnic",
         "festive"
-      ]
+      ],
+      "imageId": "a7109354c9f52862"
     },
     {
       "id": "best-sellers",
@@ -34,7 +35,8 @@
         "model",
         "outfit",
         "style"
-      ]
+      ],
+      "imageId": "44cdace172c3069c"
     },
     {
       "id": "genz",
@@ -51,7 +53,8 @@
         "hoodie",
         "sneaker",
         "fashion"
-      ]
+      ],
+      "imageId": "8ab8ba2bbc6c0243"
     },
     {
       "id": "beauty",
@@ -68,7 +71,8 @@
         "skincare",
         "lipstick",
         "beauty"
-      ]
+      ],
+      "imageId": "f82603d71ad16136"
     },
     {
       "id": "home",
@@ -103,7 +107,8 @@
         "boy",
         "girl",
         "baby"
-      ]
+      ],
+      "imageId": "1b7589d6680d51cd"
     }
   ]
 }

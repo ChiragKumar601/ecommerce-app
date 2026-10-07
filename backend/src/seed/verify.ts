@@ -1,6 +1,7 @@
 import { passesLuhn } from '@app/shared';
 import type { PrismaClient } from '../generated/prisma/client.js';
 import { MAX_PRODUCTS_PER_PRIMARY_IMAGE } from './catalogue/images.js';
+import { loadImageBlocklist } from './files.js';
 import { MIN_PER_CATEGORY, MIN_PER_SUBCATEGORY } from './catalogue/generate.js';
 import { RESERVED_SEGMENTS } from './tree.js';
 
@@ -65,13 +66,20 @@ export async function verifySeed(db: PrismaClient): Promise<VerifyResult> {
     if (Number(distinct) < MIN_DISTINCT_IMAGES) errors.push(`only ${distinct} distinct product images (need ≥ ${MIN_DISTINCT_IMAGES})`);
     const perProduct = await db.productImage.groupBy({ by: ['productId'], _count: { _all: true } });
     const placeholderIds = new Set((await db.productImage.findMany({ where: { source: 'placeholder' }, select: { productId: true } })).map((x) => x.productId));
-    // Real photos: 2–4 each. Placeholder products have exactly one on-theme image.
-    const few = perProduct.filter((x) => !placeholderIds.has(x.productId) && (x._count._all < 2 || x._count._all > 4)).length;
+    // Real photos: 1–4 each (owner request, 2026-10-07: only approved photos are used, so a category
+    // with a single approved photo shows one until more are reviewed).
+    const few = perProduct.filter((x) => !placeholderIds.has(x.productId) && (x._count._all < 1 || x._count._all > 4)).length;
+    const single = perProduct.filter((x) => !placeholderIds.has(x.productId) && x._count._all === 1).length;
+    if (single) warnings.push(`${single} products have only one approved photo`);
     if (placeholderIds.size) warnings.push(`${placeholderIds.size} products use the on-theme placeholder (no relevant photo yet)`);
     const missing = products - perProduct.length;
     if (missing) errors.push(`${missing} products have no images`);
-    if (few) errors.push(`${few} products have fewer than 2 or more than 4 images`);
+    if (few) errors.push(`${few} products have no photo or more than 4`);
     if (await db.productImage.count({ where: { source: { not: 'placeholder' }, OR: [{ licence: '' }, { photographer: '' }, { sourcePageUrl: '' }] } })) errors.push('images without licence/source metadata');
+    // Owner request (2026-10-07): photos removed after review never appear anywhere.
+    const blocked = [...loadImageBlocklist()].map((id) => `/media/catalogue/${id}.webp`);
+    const blockedUses = (await db.productImage.count({ where: { url: { in: blocked } } })) + (await db.heroSlide.count({ where: { imageUrl: { in: blocked } } })) + (await db.shopByCategoryCard.count({ where: { imageUrl: { in: blocked } } }));
+    if (blockedUses) errors.push(`${blockedUses} uses of blocklisted images`);
     const primaries = await db.$queryRawUnsafe<{ primaryNodeId: string; url: string; n: number }[]>(
       `SELECT p."primaryNodeId", i."url", COUNT(*) AS n FROM "ProductImage" i JOIN "Product" p ON p."id" = i."productId" WHERE i."order" = 0 AND i."source" <> 'placeholder' GROUP BY p."primaryNodeId", i."url" HAVING COUNT(*) > ${MAX_PRODUCTS_PER_PRIMARY_IMAGE}`,
     );
@@ -84,7 +92,7 @@ export async function verifySeed(db: PrismaClient): Promise<VerifyResult> {
   if (slides.length < 5 || slides.length > 8) errors.push(`${slides.length} active hero slides (need 5–8)`);
   if (!slides.some((s) => s.href === '/collections/best-seller-styles')) errors.push('no hero slide links to Best Seller Styles (LND-003)');
   if ((await db.shopByCategoryCard.count()) < 20) errors.push('too few Shop by Category cards');
-  if (await db.heroSlide.count({ where: { imageUrl: { startsWith: 'placeholder:' } } })) warnings.push('hero slides still use placeholder images');
+  if (await db.heroSlide.count({ where: { imageUrl: { startsWith: '/media/placeholder/' } } })) warnings.push('hero slides still use placeholder images');
   const pins = await db.serviceablePincode.findMany();
   const states = await db.stateRef.findMany();
   if (pins.length < 200) errors.push(`${pins.length} serviceable pincodes (< 200)`);

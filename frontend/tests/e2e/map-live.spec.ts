@@ -38,7 +38,6 @@ test('map step: place search, draggable pin with reverse-geocode prefill, static
   await d.getByRole('button', { name: 'Confirm location' }).click();
 
   await expect(d.getByLabel('City')).not.toHaveValue('');
-  const filled = { city: await d.getByLabel('City').inputValue(), state: await d.getByLabel('State').inputValue(), pincode: await d.getByLabel('Pincode').inputValue(), street: await d.getByLabel('Street / area').inputValue() };
   const preview = d.getByRole('img', { name: 'Map showing the chosen location' });
   await expect(preview).toBeVisible();
   await expect.poll(() => preview.evaluate((i: HTMLImageElement) => i.naturalWidth), { timeout: 10_000 }).toBeGreaterThan(0);

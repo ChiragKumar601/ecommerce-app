@@ -14,7 +14,8 @@
         "sari",
         "lehenga",
         "ethnic"
-      ]
+      ],
+      "imageId": "f44d688a6f1e5ba8"
     },
     {
       "id": "casual-wear",
@@ -29,7 +30,8 @@
         "jeans",
         "outfit",
         "casual"
-      ]
+      ],
+      "imageId": "b60284b3f0f9d5b9"
     },
     {
       "id": "mens-activewear",
@@ -45,7 +47,8 @@
         "tracksuit",
         "athlete",
         "jersey"
-      ]
+      ],
+      "imageId": "3ef20366545079e6"
     },
     {
       "id": "womens-activewear",
@@ -60,7 +63,8 @@
         "sportswear",
         "leggings",
         "running"
-      ]
+      ],
+      "imageId": "78e6ce68d87cf092"
     },
     {
       "id": "western-wear",
@@ -75,7 +79,8 @@
         "top",
         "jeans",
         "blouse"
-      ]
+      ],
+      "imageId": "45e3085b9196f553"
     },
     {
       "id": "sportswear",
@@ -90,7 +95,8 @@
         "tracksuit",
         "jersey",
         "sneaker"
-      ]
+      ],
+      "imageId": "586cd1410066da35"
     },
     {
       "id": "loungewear",
@@ -105,7 +111,8 @@
         "lounge",
         "sleepwear",
         "robe"
-      ]
+      ],
+      "imageId": "57601246ddf11b85"
     },
     {
       "id": "innerwear",
@@ -119,7 +126,8 @@
         "boxer",
         "briefs",
         "vest"
-      ]
+      ],
+      "imageId": "0e547b3646adf546"
     },
     {
       "id": "lingerie",
@@ -131,7 +139,8 @@
       "imageKeywords": [
         "lingerie",
         "bra"
-      ]
+      ],
+      "imageId": "60cf57e1c7a2698c"
     },
     {
       "id": "watches",
@@ -143,7 +152,8 @@
       "imageKeywords": [
         "watch",
         "wristwatch"
-      ]
+      ],
+      "imageId": "a110e9e1df42bbcd"
     },
     {
       "id": "grooming",
@@ -158,7 +168,8 @@
         "razor",
         "grooming",
         "barber"
-      ]
+      ],
+      "imageId": "953945be458a940a"
     },
     {
       "id": "beauty-makeup",
@@ -171,7 +182,8 @@
         "makeup",
         "cosmetics",
         "lipstick"
-      ]
+      ],
+      "imageId": "52ed972fc3e67df2"
     },
     {
       "id": "kids-wear",
@@ -187,7 +199,8 @@
         "boy",
         "girl",
         "baby"
-      ]
+      ],
+      "imageId": "108bf21a597a319c"
     },
     {
       "id": "mens-footwear",
@@ -201,7 +214,8 @@
         "sneaker",
         "boot",
         "loafer"
-      ]
+      ],
+      "imageId": "4268b6df03453613"
     },
     {
       "id": "womens-footwear",
@@ -215,7 +229,8 @@
         "sandal",
         "shoe",
         "boot"
-      ]
+      ],
+      "imageId": "dca9eacaa21032fa"
     },
     {
       "id": "bags",
@@ -229,7 +244,8 @@
         "handbag",
         "backpack",
         "purse"
-      ]
+      ],
+      "imageId": "f71495fa534531e9"
     },
     {
       "id": "belts-wallets",
@@ -241,7 +257,8 @@
       "imageKeywords": [
         "belt",
         "wallet"
-      ]
+      ],
+      "imageId": "ec9c7f2703732502"
     },
     {
       "id": "office-wear",
@@ -256,7 +273,8 @@
         "office",
         "business",
         "shirt"
-      ]
+      ],
+      "imageId": "5893437d2a82ecdc"
     },
     {
       "id": "mens-ethnic-wear",
@@ -270,7 +288,8 @@
         "sherwani",
         "dhoti",
         "ethnic"
-      ]
+      ],
+      "imageId": "215a697afbe18e15"
     },
     {
       "id": "home-decor",
@@ -299,7 +318,8 @@
         "purse",
         "bag",
         "tote"
-      ]
+      ],
+      "imageId": "70938b43aeb2de79"
     },
     {
       "id": "headphones-speakers",
@@ -313,7 +333,8 @@
         "earphone",
         "speaker",
         "headset"
-      ]
+      ],
+      "imageId": "720185bec6486dd0"
     },
     {
       "id": "jewellery",
@@ -328,7 +349,8 @@
         "earring",
         "necklace",
         "bracelet"
-      ]
+      ],
+      "imageId": "9f6d0ff637c14c00"
     },
     {
       "id": "size-inclusive",
@@ -343,7 +365,8 @@
         "dress",
         "outfit",
         "model"
-      ]
+      ],
+      "imageId": "915af4847217fb5a"
     },
     {
       "id": "watches-wearables",
@@ -357,7 +380,8 @@
         "smart watch",
         "watch",
         "wearable"
-      ]
+      ],
+      "imageId": "02f168fe739ea360"
     },
     {
       "id": "sleepwear",
@@ -371,7 +395,8 @@
         "pyjama",
         "sleepwear",
         "nightwear"
-      ]
+      ],
+      "imageId": "f7aef24a13068246"
     },
     {
       "id": "eyewear",
@@ -384,7 +409,8 @@
         "sunglasses",
         "glasses",
         "eyewear"
-      ]
+      ],
+      "imageId": "348c017ad24e05a7"
     },
     {
       "id": "kitchen-dining",
@@ -415,7 +441,8 @@
         "doll",
         "lego",
         "puzzle"
-      ]
+      ],
+      "imageId": "fc5ecacd76db9e13"
     },
     {
       "id": "skincare",

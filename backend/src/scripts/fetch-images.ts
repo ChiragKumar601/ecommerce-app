@@ -10,6 +10,7 @@
  *   pnpm images:fetch            # fetch everything still missing
  *   pnpm images:fetch --dry-run  # list the queries without fetching
  *   pnpm images:fetch --categories-only  # only category/section and content images (quick, broad)
+ *   pnpm images:fetch --only "folded briefs underwear,bras on hanger"  # just these queries
  */
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -18,7 +19,8 @@ import sharp from 'sharp';
 import { generateCatalogue } from '../seed/catalogue/generate.js';
 import type { ImageManifest, ManifestPhoto } from '../seed/catalogue/images.js';
 import { fallbackQueriesFor } from '../seed/queries.js';
-import { isRelevant, keywordsFor } from '../seed/catalogue/relevance.js';
+import { isRelevant, isUnsuitablePhoto, keywordsFor } from '../seed/catalogue/relevance.js';
+import { loadImageBlocklist } from '../seed/files.js';
 import { flattenTree, loadTree, SEED_DIR } from '../seed/tree.js';
 
 const MANIFEST = resolve(SEED_DIR, 'images/manifest.json');
@@ -27,6 +29,9 @@ const UA = 'WardrobeDemoSeed/1.0 (demo store seed script; +https://github.com/Ch
 const dryRun = process.argv.includes('--dry-run');
 /** Owner request: only category/section-level and content queries (fast, broad coverage; reuse allowed). */
 const categoriesOnly = process.argv.includes('--categories-only');
+/** Restrict the run to these queries (comma-separated), e.g. after changing a few image queries. */
+const onlyArg = process.argv.find((a, i) => process.argv[i - 1] === '--only' || a.startsWith('--only='));
+const only = onlyArg ? new Set(onlyArg.replace(/^--only=/, '').split(',').map((q) => q.trim().toLowerCase()).filter(Boolean)) : null;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const ALLOWED_LICENCE = /^(cc0|public domain|pdm|cc by(-sa)? \d(\.\d)?)/i;
@@ -39,8 +44,12 @@ interface Candidate { title: string; imageUrl: string; width: number; height: nu
 const stripHtml = (s: string) => s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
 const cleanTitle = (t: string) => t.replace(/^File:/, '').replace(/\.[a-z0-9]+$/i, '').replace(/[_-]+/g, ' ').replace(/\(\d+\)/g, '').trim();
 
+/** Photos removed after review are never fetched again (owner request, 2026-10-07). */
+const BLOCKED_IDS = loadImageBlocklist();
+
 function acceptable(c: Candidate, keywords: string[] | null): boolean {
   if (keywords && !isRelevant(c.title, keywords)) return false;
+  if (isUnsuitablePhoto(c.title) || BLOCKED_IDS.has(photoId(c))) return false;
   return (
     ALLOWED_LICENCE.test(c.licence) && !BLOCKED_LICENCE.test(c.licence) && !BLOCKED_TITLE.test(c.title) &&
     /image\/(jpeg|png|webp)/.test(c.mime) && c.width >= 600 && c.height >= 500
@@ -101,8 +110,13 @@ async function openverse(query: string): Promise<Candidate[]> {
   }));
 }
 
+/** A photo's id: stable for its source page. */
+function photoId(c: Pick<Candidate, 'pageUrl'>): string {
+  return createHash('sha1').update(c.pageUrl).digest('hex').slice(0, 16);
+}
+
 async function download(c: Candidate): Promise<ManifestPhoto | null> {
-  const id = createHash('sha1').update(c.pageUrl).digest('hex').slice(0, 16);
+  const id = photoId(c);
   const file = resolve(STORE, `${id}.webp`);
   if (!existsSync(file)) {
     try {
@@ -190,9 +204,10 @@ async function main() {
   const planned = plannedQueries();
   const manifest = loadManifest();
   // Re-download any files missing locally (e.g. on a fresh clone) for queries already in the manifest.
-  const missingFiles = Object.values(manifest.queries).flat().filter((p) => !existsSync(resolve(STORE, `${p.id}.webp`)));
-  const relevantHave = (q: string, keywords: string[] | null) => (manifest.queries[q] ?? []).filter((p) => !keywords || isRelevant(p.alt, keywords));
-  const todo = [...planned].filter(([q, { want, keywords }]) => relevantHave(q, keywords).length < Math.min(want, 6));
+  const missingFiles = Object.values(manifest.queries).flat().filter((p) => !BLOCKED_IDS.has(p.id) && !existsSync(resolve(STORE, `${p.id}.webp`)));
+  const relevantHave = (q: string, keywords: string[] | null) =>
+    (manifest.queries[q] ?? []).filter((p) => (!keywords || isRelevant(p.alt, keywords)) && !BLOCKED_IDS.has(p.id) && !isUnsuitablePhoto(p.alt));
+  const todo = [...planned].filter(([q, { want, keywords }]) => (!only || only.has(q)) && relevantHave(q, keywords).length < Math.min(want, 6));
   console.log(`[images] ${planned.size} queries planned, ${todo.length} to fetch, ${missingFiles.length} files to restore`);
   if (dryRun) return;
   for (const p of missingFiles) {

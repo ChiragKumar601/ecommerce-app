@@ -22,7 +22,8 @@
     "images:fetch": "tsx --env-file-if-exists=.env src/scripts/fetch-images.ts",
     "catalogue:generate": "tsx src/scripts/catalogue-stats.ts",
     "config:sync": "tsx --env-file-if-exists=.env src/scripts/config-sync.ts",
-    "seed:verify": "tsx --env-file-if-exists=.env src/scripts/verify-seed.ts"
+    "seed:verify": "tsx --env-file-if-exists=.env src/scripts/verify-seed.ts",
+    "images:refresh": "tsx --env-file-if-exists=.env src/scripts/refresh-images.ts"
   },
   "dependencies": {
     "@app/shared": "workspace:*",

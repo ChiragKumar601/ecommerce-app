@@ -16,8 +16,8 @@ const SYNONYMS: Record<string, string[]> = {
   'ethnic dress': ['anarkali', 'dress', 'gown'], dupatta: ['dupatta', 'stole', 'shawl', 'scarf'], blouse: ['blouse', 'choli'], palazzos: ['palazzo', 'pants'],
   dress: ['dress', 'gown', 'frock'], jumpsuit: ['jumpsuit', 'romper', 'overall'], 'co-ord sets': ['co ord', 'coord', 'matching set', 'two piece', 'outfit'],
   skirt: ['skirt'], leggings: ['leggings', 'tights'], sweater: ['sweater', 'cardigan', 'jumper', 'knit'], frock: ['frock', 'dress'],
-  bra: ['bra', 'brassiere', 'lingerie'], panties: ['panties', 'knickers', 'underwear', 'briefs'], shapewear: ['shapewear', 'corset', 'girdle'], camisole: ['camisole', 'cami'], slip: ['slip dress', 'petticoat'],
-  briefs: ['briefs', 'underwear'], boxers: ['boxers', 'boxer shorts', 'underwear'], trunks: ['trunks', 'underwear'], vest: ['vest', 'undershirt', 'singlet'], thermals: ['thermal', 'long johns', 'base layer'],
+  bra: ['bra', 'brassiere', 'lingerie'], panties: ['panties', 'knickers', 'underwear', 'briefs', 'underpants'], shapewear: ['shapewear', 'corset', 'girdle'], camisole: ['camisole', 'cami'], slip: ['slip dress', 'petticoat'],
+  briefs: ['briefs', 'underwear', 'underpants'], boxers: ['boxers', 'boxer shorts', 'underwear', 'underpants'], trunks: ['trunks', 'underwear', 'underpants'], vest: ['vest', 'undershirt', 'singlet'], thermals: ['thermal', 'long johns', 'base layer'], innerwear: ['innerwear', 'underwear', 'undershirt', 'underpants', 'vest'],
   'night suits': ['pajama', 'pyjama', 'nightwear', 'sleepwear'], pyjamas: ['pajama', 'pyjama'], 'lounge pants': ['lounge', 'pajama', 'pyjama', 'sweatpants'], robe: ['robe', 'bathrobe', 'dressing gown'], 'lounge sets': ['lounge', 'pajama', 'pyjama'], nightwear: ['pajama', 'pyjama', 'nightwear', 'nightgown'],
   bag: ['bag', 'handbag', 'purse', 'tote', 'backpack', 'satchel'], 'tote bag': ['tote', 'bag'], 'shoulder bag': ['bag', 'handbag', 'purse'], 'sling bag': ['sling', 'bag', 'crossbody'], backpack: ['backpack', 'rucksack', 'bag'],
   clutch: ['clutch', 'purse', 'evening bag'], wallet: ['wallet', 'purse'], 'crossbody bag': ['crossbody', 'bag', 'purse'], 'school bag': ['school bag', 'backpack', 'schoolbag'],
@@ -86,4 +86,15 @@ export function isRelevant(title: string, keywords: readonly string[]): boolean 
 /** Photos of events (concerts, awards, rallies…) usually show identifiable real people. */
 export function isEventPhoto(title: string): boolean {
   return EVENT_WORDS.test(title);
+}
+
+/**
+ * Titles that point to nudity, sexualised or suggestive photos, or underwear and swimwear modelled
+ * on the body (owner request, 2026-10-07). Such photos are never fetched or used; product-only
+ * shots (folded, flat-lay, on a hanger) are used for innerwear instead.
+ */
+const UNSUITABLE_WORDS = /\b(nude|nudes|nudity|naked|topless|shirtless|bare ?chest(ed)?|erotic|erotica|sexy|sexual|seductive|sensual|boudoir|pin-?up|playboy|burlesque|stripper|strip ?tease|nsfw|fetish|bdsm|latex|bikini|bikinis|swimsuit|swimwear|bathing suit|thong|g-?string|panties|lingerie model|in lingerie|in underwear|in panties|underwear model|models? in underwear|garter|suspender belt|stockings and|bulge|buldge|cleavage|breasts?|buttocks?|butt lift|suicide ?girls?|bathing|bather|bathers|venus|odalisque|harem)\b/i;
+
+export function isUnsuitablePhoto(title: string): boolean {
+  return UNSUITABLE_WORDS.test(title);
 }

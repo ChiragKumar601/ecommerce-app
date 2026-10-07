@@ -55,14 +55,14 @@ export async function syncConfig(db: PrismaClient): Promise<{ catalogueVersion: 
     await tx.heroSlide.deleteMany();
     await tx.heroSlide.createMany({
       data: f.slides.map((s) => {
-        const img = contentImage(manifest, s.imageQuery, s.imageKeywords, usedContentImages);
+        const img = contentImage(manifest, s.imageQuery, s.imageKeywords, usedContentImages, s.imageId);
         return { id: s.id, imageUrl: img.url, imageAlt: img.alt, headline: s.headline, subheadline: s.subheadline, ctaLabel: s.ctaLabel, href: s.href, order: s.order, active: s.active };
       }),
     });
     await tx.shopByCategoryCard.deleteMany();
     await tx.shopByCategoryCard.createMany({
       data: f.cards.map((c) => {
-        const img = contentImage(manifest, c.imageQuery, c.imageKeywords, usedContentImages);
+        const img = contentImage(manifest, c.imageQuery, c.imageKeywords, usedContentImages, c.imageId);
         return { id: c.id, name: c.name, imageUrl: img.url, imageAlt: img.alt, discountText: c.discountText, href: c.href, order: c.order, active: true };
       }),
     });
@@ -92,12 +92,9 @@ export async function bumpCatalogueVersion(db: PrismaClient): Promise<number> {
 }
 
 /** Full catalogue seed (`pnpm db:seed`): replaces catalogue, review and config data. */
-export async function seedAll(db: PrismaClient) {
-  const nodes = flattenTree(loadTree());
-  const catalogue = generateCatalogue(nodes);
-  const reviews = generateReviews(catalogue.products);
+/** Image assignment for the generated catalogue, in the default listing order (S3.10). */
+function planImages(nodes: ReturnType<typeof flattenTree>, catalogue: ReturnType<typeof generateCatalogue>, reviews: ReturnType<typeof generateReviews>) {
   const manifest = loadImageManifest();
-
   // Rating statistics for the default listing order used by image assignment.
   const byProduct = new Map<string, number[]>();
   for (const r of reviews) byProduct.set(r.productId, [...(byProduct.get(r.productId) ?? []), r.rating]);
@@ -112,6 +109,45 @@ export async function seedAll(db: PrismaClient) {
   const images = manifest
     ? assignImages(catalogue.products, manifest, (p) => score(p.id, p.listingDate), fallbackQueriesFor(new Map(nodes.map((n) => [n.id, n]))))
     : { images: [], problems: ['image manifest not found — run `pnpm images:fetch`'], placeholderProductIds: catalogue.products.map((x) => x.id) };
+  return { images, byProduct };
+}
+
+/** Product image rows: real photos with their credits, and the on-theme placeholder where none is relevant. */
+function imageRows(catalogue: ReturnType<typeof generateCatalogue>, images: ReturnType<typeof planImages>['images']) {
+  const byId = new Map(catalogue.products.map((x) => [x.id, x]));
+  return [
+    ...images.images.map((im) => ({
+      id: `${im.productId}-i${im.order}`, productId: im.productId, url: im.photo.url, alt: im.photo.alt, order: im.order, source: im.photo.source,
+      sourcePageUrl: im.photo.pageUrl, photographer: im.photo.photographer, photographerUrl: im.photo.photographerUrl, licence: im.photo.licence,
+    })),
+    ...images.placeholderProductIds.map((productId) => ({
+      id: `${productId}-i0`, productId, url: `/media/placeholder/${byId.get(productId)!.primarySectionId}.svg`, alt: `${byId.get(productId)!.name} — image coming soon`,
+      order: 0, source: 'placeholder', sourcePageUrl: '', photographer: '', photographerUrl: null, licence: 'Own work',
+    })),
+  ];
+}
+
+/**
+ * Re-assigns product, hero and category-card images in place (after the manifest or blocklist
+ * changes). Products, variants, stock, reviews, bags, wishlists and orders are left untouched.
+ */
+export async function refreshImages(db: PrismaClient) {
+  const nodes = flattenTree(loadTree());
+  const catalogue = generateCatalogue(nodes);
+  const { images } = planImages(nodes, catalogue, generateReviews(catalogue.products));
+  const existing = new Set((await db.product.findMany({ select: { id: true } })).map((p) => p.id));
+  const rows = imageRows(catalogue, images).filter((r) => existing.has(r.productId));
+  await db.productImage.deleteMany();
+  await insertMany(rows, (c) => db.productImage.createMany({ data: c }));
+  const sync = await syncConfig(db); // hero slides and category cards pick their images again
+  return { images: rows.length, placeholders: images.placeholderProductIds.length, problems: images.problems, catalogueVersion: sync.catalogueVersion };
+}
+
+export async function seedAll(db: PrismaClient) {
+  const nodes = flattenTree(loadTree());
+  const catalogue = generateCatalogue(nodes);
+  const reviews = generateReviews(catalogue.products);
+  const { images, byProduct } = planImages(nodes, catalogue, reviews);
 
   // Clear catalogue data (children first).
   await db.$transaction([
@@ -141,16 +177,7 @@ export async function seedAll(db: PrismaClient) {
   await insertMany(p.flatMap((x) => x.variants.map((v) => ({ id: v.id, productId: x.id, sizeLabel: v.sizeLabel, sortOrder: v.sortOrder, mrp: v.mrp, sellingPrice: v.sellingPrice }))), (c) => db.variant.createMany({ data: c }));
   await insertMany(p.flatMap((x) => x.variants.map((v) => ({ variantId: v.id, onHand: v.onHand, held: 0, baselineOnHand: v.onHand }))), (c) => db.inventory.createMany({ data: c }));
   await insertMany(catalogue.curated, (c) => db.productCuratedRec.createMany({ data: c }));
-  await insertMany(images.images.map((im) => ({
-    id: `${im.productId}-i${im.order}`, productId: im.productId, url: im.photo.url, alt: im.photo.alt, order: im.order, source: im.photo.source,
-    sourcePageUrl: im.photo.pageUrl, photographer: im.photo.photographer, photographerUrl: im.photo.photographerUrl, licence: im.photo.licence,
-  })), (c) => db.productImage.createMany({ data: c }));
-  // Products without a relevant photo get the on-theme section placeholder (one image).
-  const byId = new Map(p.map((x) => [x.id, x]));
-  await insertMany(images.placeholderProductIds.map((productId) => ({
-    id: `${productId}-i0`, productId, url: `/media/placeholder/${byId.get(productId)!.primarySectionId}.svg`, alt: `${byId.get(productId)!.name} — image coming soon`,
-    order: 0, source: 'placeholder', sourcePageUrl: '', photographer: '', photographerUrl: null, licence: 'Own work',
-  })), (c) => db.productImage.createMany({ data: c }));
+  await insertMany(imageRows(catalogue, images), (c) => db.productImage.createMany({ data: c }));
   await insertMany(reviews.map((r) => ({ ...r, seeded: true, verifiedPurchase: false, status: 'visible', updatedAt: r.createdAt })), (c) => db.review.createMany({ data: c }));
   await insertMany([...byProduct].map(([productId, rs]) => ({ productId, ...aggregate(rs) })), (c) => db.ratingAggregate.createMany({ data: c }));
 
