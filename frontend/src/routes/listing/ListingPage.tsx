@@ -10,6 +10,8 @@ import { formatINR } from '../../lib/format';
 import { clearAll, getList, hasFilters, LIST_KEYS, listingParams, rememberListing, setList, setParam, SORT_LABELS, type ListingScopeRef } from '../../features/listing/params';
 import { listingQuery } from '../../features/listing/query';
 import { toggleWishlist, useWishlistIds } from '../../features/wishlist';
+import { addRecentSearch } from '../../features/search';
+import { ZeroResults } from './ZeroResults';
 import { FilterPanel } from './FilterPanel';
 
 const nf = new Intl.NumberFormat('en-IN');
@@ -94,6 +96,12 @@ export function ListingPage({ scopeRef }: { scopeRef: ListingScopeRef }) {
   const filterBtn = useRef<HTMLButtonElement>(null);
   const sortBtn = useRef<HTMLButtonElement>(null);
 
+  // A search that returns results is remembered on the device (SRC-009).
+  const searchedTerm = shown && !query.isPlaceholderData && shown.scope.kind === 'search' && shown.totalCount > 0 ? shown.scope.q : undefined;
+  useEffect(() => {
+    if (searchedTerm) addRecentSearch(searchedTerm);
+  }, [searchedTerm]);
+
   useEffect(() => {
     if (shown && !query.isPlaceholderData) rememberListing(shown.scope.section, pathname, params);
   }, [shown, params, pathname, query.isPlaceholderData]);
@@ -115,6 +123,7 @@ export function ListingPage({ scopeRef }: { scopeRef: ListingScopeRef }) {
   if (!shown) return <ListingSkeleton />;
 
   const data = shown;
+  if (data.scope.kind === 'search' && data.totalCount === 0 && !hasFilters(params)) return <ZeroResults term={data.scope.q ?? ''} />;
   const chips = chipsFor(params, data);
   const pages = query.data?.pages ?? [data];
   const loadingNew = query.isPlaceholderData;

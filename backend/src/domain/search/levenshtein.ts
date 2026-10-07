@@ -29,3 +29,33 @@ export function boundedLevenshtein(a: string, b: string, max: number): number {
 export function withinTypoAllowance(queryWord: string, candidate: string, allowance: number): boolean {
   return boundedLevenshtein(queryWord, candidate, allowance) <= allowance;
 }
+
+/**
+ * Optimal-string-alignment distance (Levenshtein plus adjacent transpositions, each one edit),
+ * bounded like `boundedLevenshtein`. Search uses this so "jaens" is one typo from "jeans" (SRC-004).
+ */
+export function boundedOsa(a: string, b: string, max: number): number {
+  const s = [...a];
+  const t = [...b];
+  if (Math.abs(s.length - t.length) > max) return max + 1;
+  if (s.length === 0) return t.length <= max ? t.length : max + 1;
+  if (t.length === 0) return s.length <= max ? s.length : max + 1;
+  let prev2: number[] = [];
+  let prev = Array.from({ length: t.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= s.length; i += 1) {
+    const cur = [i];
+    let rowMin = i;
+    for (let j = 1; j <= t.length; j += 1) {
+      const cost = s[i - 1] === t[j - 1] ? 0 : 1;
+      let v = Math.min(prev[j]! + 1, cur[j - 1]! + 1, prev[j - 1]! + cost);
+      if (i > 1 && j > 1 && s[i - 1] === t[j - 2] && s[i - 2] === t[j - 1]) v = Math.min(v, prev2[j - 2]! + 1);
+      cur.push(v);
+      if (v < rowMin) rowMin = v;
+    }
+    if (rowMin > max) return max + 1;
+    prev2 = prev;
+    prev = cur;
+  }
+  const d = prev[t.length]!;
+  return d <= max ? d : max + 1;
+}

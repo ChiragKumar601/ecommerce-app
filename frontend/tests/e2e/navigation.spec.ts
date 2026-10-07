@@ -12,7 +12,7 @@ test.describe('desktop navigation (NAV-001…NAV-008)', () => {
     const sections = page.getByRole('navigation', { name: 'Shop by section' });
     for (const name of ['Men', 'Women', 'Kids', 'Home', 'Beauty', 'Gen Z']) await expect(sections.getByRole('button', { name, exact: true })).toBeVisible();
     for (const name of ['Profile', 'Wishlist', 'Bag']) await expect(page.getByRole('link', { name, exact: true })).toBeVisible();
-    await expect(page.getByRole('searchbox', { name: /Search for products/ })).toBeVisible();
+    await expect(page.getByRole('combobox', { name: /Search for products/ })).toBeVisible();
   });
 
   test('mega menu opens on hover with categories and subcategories (NAV-005)', async ({ page }) => {
@@ -34,7 +34,7 @@ test.describe('desktop navigation (NAV-001…NAV-008)', () => {
     await page.goto('/pages/blog');
     await page.getByRole('link', { name: /Wardrobe & Co\. — home/ }).click();
     await expect(page).toHaveURL(/\/$/);
-    await page.getByRole('searchbox', { name: /Search for products/ }).fill('sneakers');
+    await page.getByRole('combobox', { name: /Search for products/ }).fill('sneakers');
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/\/search\?q=sneakers$/);
   });
@@ -64,8 +64,8 @@ test.describe('mobile navigation (NAV-006, NAV-008)', () => {
   test('search icon opens a full-screen search overlay', async ({ page }) => {
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     const overlay = page.getByRole('dialog', { name: 'Search' });
-    await expect(overlay.getByRole('searchbox')).toBeFocused();
-    await overlay.getByRole('searchbox').fill('kurta');
+    await expect(overlay.getByRole('combobox')).toBeFocused();
+    await overlay.getByRole('combobox').fill('kurta');
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/\/search\?q=kurta$/);
   });

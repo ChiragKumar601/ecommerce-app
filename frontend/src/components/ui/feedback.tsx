@@ -18,11 +18,12 @@ export function Skeleton({ className }: { className?: string }) {
   );
 }
 
-export function EmptyState({ title, description, action, icon, className }: { title: string; description?: ReactNode; action?: ReactNode; icon?: ReactNode; className?: string }) {
+export function EmptyState({ title, description, action, icon, className, level = 2 }: { title: string; description?: ReactNode; action?: ReactNode; icon?: ReactNode; className?: string; level?: 1 | 2 }) {
+  const Heading = level === 1 ? 'h1' : 'h2';
   return (
     <div className={cn('mx-auto flex max-w-md flex-col items-center gap-3 px-4 py-14 text-center', className)}>
       <div className="flex size-14 items-center justify-center rounded-full bg-surface-muted text-ink-muted">{icon ?? <PackageOpen className="size-7" aria-hidden="true" />}</div>
-      <h2 className="text-h3 font-semibold">{title}</h2>
+      <Heading className="text-h3 font-semibold">{title}</Heading>
       {description && <p className="text-ink-muted">{description}</p>}
       {action && <div className="mt-2">{action}</div>}
     </div>

@@ -1,6 +1,6 @@
 import { Heart, ShoppingBag, User } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { NavLink } from 'react-router';
+import { NavLink, useSearchParams } from 'react-router';
 import { useBagCount, useNav } from '../../features/site';
 import { cn } from '../../lib/cn';
 import { Logo } from '../layout/Logo';
@@ -33,6 +33,7 @@ export function Header({ brandName }: { brandName: string }) {
   const nav = useNav();
   const sections = nav.data ?? [];
   const bagCount = useBagCount();
+  const searchQ = useSearchParams()[0].get('q') ?? '';
   return (
     <header className="sticky top-0 z-[40] border-b border-line bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/85">
       <div className="container-page flex h-16 items-center gap-2 lg:h-[4.5rem] lg:gap-6">
@@ -40,7 +41,8 @@ export function Header({ brandName }: { brandName: string }) {
         <Logo name={brandName} />
         <MegaMenu sections={sections} />
         <div className="ml-auto hidden max-w-md flex-1 lg:block">
-          <SearchBar />
+          {/* Keyed by ?q so the box shows the current search after navigation. */}
+          <SearchBar key={searchQ} />
         </div>
         <nav aria-label="Account and bag" className="ml-auto flex items-center gap-0.5 sm:gap-2 lg:ml-0">
           <MobileSearch />

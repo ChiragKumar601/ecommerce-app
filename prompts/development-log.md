@@ -304,3 +304,28 @@ A short chronological record of the important steps, decisions and changes on th
     - **Shop by Category:** 3:4 crops, 2/4/5/6 columns at <768/768/1024/1280, and the whole card is a link.
     - Image alt text is empty for decorative photos next to their text, so stock-photo captions don't mislead screen-reader users.
 68. **Tests:** lint and typecheck pass; shared 26, backend 157 (+3: landing content, a data-added card appears, inactive hidden, slide cap 8; nodes scope), frontend 17; E2E 104 passed / 10 viewport-skipped, including landing order, carousel controls/autoplay/pause, bank-offer terms and link, card navigation, column counts at four widths, and axe. Main bundle 165.8 KB gzip (budget 170). Lighthouse is still deferred to Stage 22.
+
+## 2026-10-07 — Stage 8: Search (complete)
+
+69. **Search index** (`services/search/index.ts`), built from the catalogue snapshot and rebuilt with it per catalogue version (warmed at start-up):
+    - Inverted index with field weights: name and brand 5, node names 4, colour 3, subtitle 2, specification values 1. Specification values were added to the snapshot.
+    - Vocabulary bucketed by length. Hyphenated words are also indexed joined ("T-Shirt" → "tshirt"). Light plural stemming on both sides (dresses→dress, watches→watch). Stopwords are dropped.
+    - **Typo tolerance (SRC-004):** ≤ 5 characters → 1 edit, longer → 2, only for words of 3+ characters. **T-decision:** edits are measured as optimal-string-alignment distance (Levenshtein plus adjacent swaps), so "jaens" is one typo from "jeans". Only the closest candidates count; on ties, words sharing the first letter win ("speakr" → speaker, not sneaker). An exact word suppresses fuzzy expansion, so exact matches always rank first.
+    - **Multi-word queries:** all words must match. If nothing matches all of them, products matching the most words are returned.
+    - Build ~110 ms; lookup p95 < 50 ms (tested).
+70. **API:**
+    - `scope=search&q=` in ListProducts uses every listing capability with the matches as scope (SRC-006); "Recommended" orders by relevance first.
+    - Searching within a node = the `category` filter accepting any node in search scope, shown as a removable chip (SRC-008).
+    - `GET /search/suggest`: categories (with path context), brands (→ `/search?q=<brand>&brand=<slug>`), products (image, brand, price), popular searches; minimum 2 characters; at most 8, in group order.
+    - Suggestion latency on the dev server: median ~10 ms, worst ~100 ms (gate 200 ms).
+71. **Frontend:**
+    - **Header search** is an ARIA combobox with a 250 ms debounce. The empty-focus view shows 5 recent and 5 popular searches with "Clear recent searches". While typing, matching recent searches come first, then the server groups, capped at 8.
+    - Arrow keys, Enter and Escape work; Escape closes the list without clearing the field. The mobile overlay shows the list inline.
+    - **Recent searches** are stored on the device (≤ 10, case-insensitive de-duplication, newest first) after a search with results. Account storage comes in S10.
+    - **`/search` route:** results reuse ListingPage, with `q` as a scope key kept through filter changes and Clear all. Zero-results page (SRC-007) and an empty-query prompt (SRC-010).
+    - `EmptyState` gained a heading `level`, so these pages and Not found have an h1. The header search box is keyed by `?q`.
+72. **Bugs fixed:**
+    - Filter changes dropped `q`.
+    - Escape in a `type=search` input cleared the text and reopened the list.
+    - Category facet ordering produced NaN for added nodes.
+73. **Tests:** lint and typecheck pass; shared 26, backend 201 (+40 index: a 33-case typo set over the full generated catalogue, OSA, ranking, fields, stemming, latency; +4 search/suggest API), frontend 17; E2E 119 passed / 16 viewport-skipped, including UF-02 (typo → suggestions → results → recent → clear), keyboard selection, product/category suggestions, filters on results, zero results, empty query and the mobile overlay. Main bundle 167.9 KB gzip (budget 170: later pages must stay lazy).

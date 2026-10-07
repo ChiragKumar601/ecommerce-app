@@ -9,6 +9,7 @@ export function NotFound() {
   return (
     <PageLayout narrow>
       <EmptyState
+        level={1}
         icon={<Search className="size-7" aria-hidden="true" />}
         title="Page not found"
         description="The page you're looking for doesn't exist or is no longer available. Try a search instead."

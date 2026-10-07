@@ -22,7 +22,7 @@ export const SORT_LABELS: Record<ListingSort, string> = {
 };
 
 /** URL keys that define the listing itself: kept by "Clear all", never shown as chips (PLP-006). */
-export const SCOPE_KEYS = ['nodes'] as const;
+export const SCOPE_KEYS = ['q', 'nodes'] as const;
 
 /** Only listing keys survive; everything else in the URL is ignored. */
 export function listingParams(search: URLSearchParams): URLSearchParams {

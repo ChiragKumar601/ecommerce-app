@@ -5,6 +5,7 @@ import { discountPercent } from '../../domain/catalogue/discount.js';
 import { recommendedScore } from '../../domain/catalogue/sortScore.js';
 import { AppError } from '../../domain/errors.js';
 import { money } from '../../domain/money.js';
+import { indexFor } from '../search/index.js';
 import { ancestry, getDynamic, getSnapshot, type CatalogueSnapshot, type Rating, type SnapNode, type SnapProduct } from './snapshot.js';
 
 // ListProducts (spec §11.2; PLP-001…015). Scope → filters → facets → sort → page.
@@ -175,6 +176,8 @@ export interface ListOptions {
 export async function listProducts(ctx: AppContext, q: ListingQuery, opts: ListOptions = {}): Promise<ListingResponse> {
   const snap = await getSnapshot(ctx);
   const dyn = await getDynamic(ctx);
+  // Search results reuse every listing capability with the matched products as the scope (SRC-006).
+  if (q.scope === 'search' && !opts.search) opts = { ...opts, search: indexFor(snap).search(q.q ?? '') };
   const scope = resolveScope(snap, q, opts.search?.ids);
   const nodeLabel = (n: SnapNode) => {
     if (scope.info.node) return n.name;
@@ -191,7 +194,8 @@ export async function listProducts(ctx: AppContext, q: ListingQuery, opts: ListO
     inStock: q.inStock, bankOffer: scope.bankOfferDefault ? q.bankOffer !== '0' : false, inclusiveSizing: q.inclusiveSizing,
   };
   const categoryIds = new Set(scope.categoryNodes.map((n) => n.id));
-  applied.category = applied.category.filter((c) => categoryIds.has(c));
+  // Searching within a category = search with that node as a removable filter (SRC-008), so any node is allowed there.
+  applied.category = applied.category.filter((c) => categoryIds.has(c) || (q.scope === 'search' && snap.nodes.has(c)));
   if (q.prune) {
     const has = (pick: (d: Derived) => Iterable<string>) => {
       const s = new Set<string>();
@@ -229,6 +233,7 @@ export async function listProducts(ctx: AppContext, q: ListingQuery, opts: ListO
   }
   if (applied.category.length) {
     const s = applied.category;
+    for (const id of s) categoryIds.add(id);
     preds.set('category', (d) => s.some((id) => d.p.nodeIds.has(id)));
   }
   if (applied.brand.length) {
@@ -290,7 +295,7 @@ export async function listProducts(ctx: AppContext, q: ListingQuery, opts: ListO
     const order = new Map(scope.categoryNodes.map((n, i) => [n.id, i]));
     facets.category = listFacet(
       countValues(without('category'), (d) => [...d.p.nodeIds].filter((id) => categoryIds.has(id))),
-      applied.category, (v) => nodeLabel(snap.nodes.get(v)!), (a, b) => order.get(a.value)! - order.get(b.value)!,
+      applied.category, (v) => nodeLabel(snap.nodes.get(v)!), (a, b) => (order.get(a.value) ?? 999) - (order.get(b.value) ?? 999),
     );
   }
   facets.brand = listFacet(countValues(without('brand'), (d) => [d.p.brandSlug]), applied.brand, (v) => brandNames.get(v) ?? v, byCount);

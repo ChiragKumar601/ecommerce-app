@@ -201,4 +201,46 @@ describe('ListProducts (S6.1–S6.4)', () => {
   it('sets a short public cache header', async () => {
     expect((await list({ scope: 'all' })).headers['cache-control']).toBe('public, max-age=5');
   });
+
+  describe('search (S8.2–S8.3)', () => {
+    it('search results use every listing capability with the matches as scope (SRC-006, SRC-004)', async () => {
+      const r = await list({ scope: 'search', q: 'jeens' });
+      expect(r.status).toBe(200);
+      expect(ids(r)).toEqual(['p-delta']);
+      expect(r.body.scope).toMatchObject({ kind: 'search', title: 'Search: jeens', q: 'jeens' });
+      expect(r.body.facets.brand).toBeDefined();
+      // Node names match too: every T-Shirts product matches "shirt" (SRC-003); sorting still applies.
+      const shirts = await list({ scope: 'search', q: 'shirt', sort: 'price_desc' });
+      expect(shirts.body.totalCount).toBe(30);
+      expect(ids(shirts)[0]).toBe('p-bravo');
+      expect(ids(await list({ scope: 'search', q: 'oxford' }))).toEqual(['p-charlie']);
+    });
+
+    it('zero results, empty and over-long queries (SRC-007, SRC-010)', async () => {
+      expect((await list({ scope: 'search', q: 'zzzzqqq' })).body.totalCount).toBe(0);
+      expect((await list({ scope: 'search', q: '   ' })).status).toBe(422);
+      expect((await list({ scope: 'search', q: 'x'.repeat(101) })).status).toBe(422);
+    });
+
+    it('searching within a node keeps the node as a removable filter (SRC-008)', async () => {
+      const r = await list({ scope: 'search', q: 'tee', category: 'men/topwear/t-shirts' });
+      expect(r.body.applied.category).toEqual(['men/topwear/t-shirts']);
+      expect(r.body.labels['category:men/topwear/t-shirts']).toBe('T-Shirts (Topwear)');
+      expect(r.body.items.every((i) => i.id.startsWith('p-fill') || i.id === 'p-alpha')).toBe(true);
+    });
+
+    it('suggestions: grouped, capped at 8, minimum 2 characters (SRC-001, SRC-005)', async () => {
+      const short = await request(t.app).get('/api/v1/search/suggest').query({ q: 'j' });
+      expect(short.body).toEqual({ categories: [], brands: [], products: [], popular: [] });
+      const r = await request(t.app).get('/api/v1/search/suggest').query({ q: 'north' });
+      expect(r.status).toBe(200);
+      expect(r.body.brands).toEqual([{ label: 'Northlane', href: '/search?q=Northlane&brand=northlane' }]);
+      expect(r.body.products.length).toBeGreaterThan(0);
+      const total = r.body.categories.length + r.body.brands.length + r.body.products.length + r.body.popular.length;
+      expect(total).toBeLessThanOrEqual(8);
+      const cat = await request(t.app).get('/api/v1/search/suggest').query({ q: 'jea' });
+      expect(cat.body.categories[0]).toMatchObject({ label: 'Jeans', href: '/men/bottomwear/jeans', context: 'Men › Bottomwear' });
+      expect(cat.body.products[0]).toMatchObject({ label: 'Delta Slim Jeans', brand: 'Kestrel', price: '₹2,099' });
+    });
+  });
 });

@@ -39,6 +39,8 @@ export interface SnapProduct {
   primaryNodeId: string;
   styleGroupId: string;
   nodeIds: Set<string>;
+  /** Specification values, for search matching (SRC-003). */
+  specValues: string[];
   variants: SnapVariant[];
   images: { url: string; alt: string }[];
 }
@@ -102,7 +104,7 @@ async function load(db: PrismaClient, version: number): Promise<CatalogueSnapsho
     db.product.findMany({
       where: { active: true },
       select: {
-        id: true, slug: true, name: true, subtitle: true, gender: true, colour: true, listingDate: true, brandId: true,
+        id: true, slug: true, name: true, subtitle: true, gender: true, colour: true, listingDate: true, brandId: true, specifications: true,
         bestSeller: true, bankOfferEligible: true, inclusiveSizing: true, primarySectionId: true, primaryNodeId: true, styleGroupId: true,
       },
     }),
@@ -159,6 +161,7 @@ async function load(db: PrismaClient, version: number): Promise<CatalogueSnapsho
       listingDate: r.listingDate.getTime(), bestSeller: r.bestSeller, bankOfferEligible: r.bankOfferEligible, inclusiveSizing: r.inclusiveSizing,
       primarySectionId: r.primarySectionId, primaryNodeId: r.primaryNodeId, styleGroupId: r.styleGroupId,
       nodeIds,
+      specValues: Array.isArray(r.specifications) ? (r.specifications as { value?: unknown }[]).map((x) => String(x.value ?? '')).filter(Boolean) : [],
       variants: vs.map((v) => ({ id: v.id, sizeLabel: v.sizeLabel, sortOrder: v.sortOrder, mrp: v.mrp, sellingPrice: v.sellingPrice })),
       images: (images.get(r.id) ?? []).map((i) => ({ url: i.url, alt: i.alt })),
     });
