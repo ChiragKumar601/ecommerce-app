@@ -63,4 +63,29 @@ describe('navigation and content (S5.1)', () => {
     expect(res.body.length).toBeGreaterThanOrEqual(5);
     expect(res.body[0].items[0]).toHaveProperty('question');
   });
+
+  describe('landing content (S7.1)', () => {
+    it('returns slides, the bank offer and cards in LND-001 order (LND-001…005)', async () => {
+      const res = await request(t.app).get('/api/v1/content/landing');
+      expect(res.status).toBe(200);
+      expect(res.body.slides.length).toBeGreaterThanOrEqual(5);
+      expect(res.body.slides.some((s: { href: string }) => s.href === '/collections/best-seller-styles')).toBe(true); // LND-003
+      expect(res.body.bankOffer).toMatchObject({ bankName: 'HDFC Bank', href: '/offers/hdfc' });
+      expect(res.body.bankOffer.termsText.length).toBeGreaterThan(20);
+      expect(res.body.cards[0]).toMatchObject({ name: 'Ethnic Wear', discountText: '50–80% OFF' });
+      expect(res.body.cards[0].image.url).toMatch(/^\/media\//);
+    });
+
+    it('a card or slide added in data appears without code changes; at most 8 slides (LND-005, R-38)', async () => {
+      await t.ctx.db.shopByCategoryCard.create({ data: { id: 'new-card', name: 'New Arrivals', imageUrl: '/media/placeholder/x.svg', imageAlt: '', discountText: 'UP TO 30% OFF', href: '/shop/all', order: 999 } });
+      await t.ctx.db.shopByCategoryCard.create({ data: { id: 'off-card', name: 'Hidden', imageUrl: '/media/placeholder/x.svg', imageAlt: '', discountText: '', href: '/shop/all', order: 1000, active: false } });
+      for (let i = 0; i < 9; i++) {
+        await t.ctx.db.heroSlide.create({ data: { id: `extra-${i}`, imageUrl: '/media/placeholder/x.svg', imageAlt: '', headline: `Extra ${i}`, ctaLabel: 'Shop', href: '/shop/all', order: 100 + i } });
+      }
+      const res = await request(t.app).get('/api/v1/content/landing');
+      expect(res.body.cards.at(-1).name).toBe('New Arrivals');
+      expect(res.body.cards.some((c: { name: string }) => c.name === 'Hidden')).toBe(false);
+      expect(res.body.slides).toHaveLength(8);
+    });
+  });
 });

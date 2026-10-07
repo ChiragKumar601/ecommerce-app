@@ -141,13 +141,19 @@ function resolveScope(snap: CatalogueSnapshot, q: ListingQuery, searchIds?: stri
         bankOfferDefault: false,
       };
     }
-    default:
+    default: {
+      // Optional node list narrows "all" (merchandising links); unknown ids are ignored.
+      const picked = q.nodes.map((id) => snap.nodes.get(id)).filter((n): n is SnapNode => !!n);
+      const title = picked.length
+        ? picked.length <= 3 ? picked.map((n) => n.name).join(', ') : `${picked.slice(0, 2).map((n) => n.name).join(', ')} and more`
+        : 'All products';
       return {
-        info: { kind: 'all', title: 'All products', section: null, breadcrumbs: [home, { label: 'All products' }] },
-        base: snap.products,
+        info: { kind: 'all', title, section: null, breadcrumbs: [home, { label: title }] },
+        base: picked.length ? snap.products.filter((p) => picked.some((n) => p.nodeIds.has(n.id))) : snap.products,
         categoryNodes: categories(),
         bankOfferDefault: false,
       };
+    }
   }
 }
 

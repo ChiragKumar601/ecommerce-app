@@ -64,3 +64,18 @@ export async function getSiteInfo(ctx: AppContext) {
     popularSearches: popular.map((p) => p.term),
   };
 }
+
+/** Landing page content in LND-001 order: hero slides (≤ 8, R-38), the active bank offer, Shop by Category cards. */
+export async function getLanding(ctx: AppContext) {
+  const now = ctx.clock.now();
+  const [slides, offer, cards] = await Promise.all([
+    ctx.db.heroSlide.findMany({ where: { active: true }, orderBy: { order: 'asc' }, take: 8 }),
+    ctx.db.bankOffer.findFirst({ where: { active: true, validFrom: { lte: now }, validTo: { gte: now } }, orderBy: { id: 'asc' } }),
+    ctx.db.shopByCategoryCard.findMany({ where: { active: true }, orderBy: { order: 'asc' } }),
+  ]);
+  return {
+    slides: slides.map((s) => ({ id: s.id, image: { url: s.imageUrl, alt: s.imageAlt }, headline: s.headline, subheadline: s.subheadline, ctaLabel: s.ctaLabel, href: s.href })),
+    bankOffer: offer ? { id: offer.id, bankName: offer.bankName, summary: offer.summary, termsText: offer.termsText, href: '/offers/hdfc' } : null,
+    cards: cards.map((c) => ({ id: c.id, name: c.name, image: { url: c.imageUrl, alt: c.imageAlt }, discountText: c.discountText, href: c.href })),
+  };
+}

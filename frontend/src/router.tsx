@@ -2,7 +2,7 @@ import { createBrowserRouter, type RouteObject } from 'react-router';
 import { RootLayout } from './components/layout/RootLayout';
 import { listingRoutes } from './features/listing/routes';
 import { ContentPage, contentPageLoader } from './routes/ContentPage';
-import { Home } from './routes/Home';
+import { Home, homeLoader } from './routes/Home';
 import { NotFound } from './routes/NotFound';
 import { RouteError } from './routes/RouteError';
 
@@ -26,7 +26,7 @@ export const routes: RouteObject[] = [
         // Page errors and 404s render inside the layout, so the header, search and scroll restoration stay (GLB-005).
         errorElement: <RouteError />,
         children: [
-          { index: true, element: <Home /> },
+          { index: true, element: <Home />, loader: homeLoader },
           {
             path: 'pages/:slug',
             element: <ContentPage />,

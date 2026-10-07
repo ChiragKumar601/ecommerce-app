@@ -17,6 +17,8 @@ export const listingQuerySchema = z
     scope: z.enum(LISTING_SCOPES).default('all'),
     node: z.string().regex(/^[a-z0-9-]+(?:\/[a-z0-9-]+){0,2}$/).optional(),
     q: z.string().trim().max(100).optional(),
+    /** All-products scope narrowed to these catalogue nodes (merchandising links, e.g. "Ethnic Wear"). */
+    nodes: csv,
     gender: csv,
     category: csv,
     brand: csv,

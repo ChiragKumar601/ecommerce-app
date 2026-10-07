@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import type { AppContext } from '../context.js';
 import { handler, validate } from '../middleware/core.js';
-import { getContentPage, getFaqs, getNavigation, getSiteInfo } from '../../services/content.js';
+import { getContentPage, getFaqs, getLanding, getNavigation, getSiteInfo } from '../../services/content.js';
 
 /** Navigation, site info, content pages and FAQs (S5.1). Public, cacheable reads. */
 export function contentRouter(ctx: AppContext): Router {
@@ -13,6 +13,7 @@ export function contentRouter(ctx: AppContext): Router {
   };
   r.get('/site', cache(60), handler(async (_req, res) => res.json(await getSiteInfo(ctx))));
   r.get('/nav', cache(60), handler(async (_req, res) => res.json(await getNavigation(ctx))));
+  r.get('/content/landing', cache(60), handler(async (_req, res) => res.json(await getLanding(ctx))));
   r.get('/faqs', cache(300), handler(async (_req, res) => res.json(await getFaqs(ctx))));
   r.get(
     '/content/pages/:slug',

@@ -21,10 +21,13 @@ export const SORT_LABELS: Record<ListingSort, string> = {
   rating: 'Customer Rating',
 };
 
+/** URL keys that define the listing itself: kept by "Clear all", never shown as chips (PLP-006). */
+export const SCOPE_KEYS = ['nodes'] as const;
+
 /** Only listing keys survive; everything else in the URL is ignored. */
 export function listingParams(search: URLSearchParams): URLSearchParams {
   const out = new URLSearchParams();
-  for (const k of [...FILTER_KEYS, 'sort'] as const) {
+  for (const k of [...SCOPE_KEYS, ...FILTER_KEYS, 'sort'] as const) {
     const v = search.get(k);
     if (v) out.set(k, v);
   }
@@ -60,8 +63,10 @@ export function setParam(params: URLSearchParams, key: FilterKey | 'sort', value
 /** "Clear all" keeps the listing's defining scope; the bank-offer chip returns to its default (PLP-006). */
 export function clearAll(params: URLSearchParams): URLSearchParams {
   const next = new URLSearchParams();
-  const sort = params.get('sort');
-  if (sort) next.set('sort', sort);
+  for (const k of [...SCOPE_KEYS, 'sort'] as const) {
+    const v = params.get(k);
+    if (v) next.set(k, v);
+  }
   return next;
 }
 

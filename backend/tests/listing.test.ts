@@ -51,6 +51,13 @@ describe('ListProducts (S6.1–S6.4)', () => {
       expect(ids(await list({ scope: 'all', inclusiveSizing: '1' }))).toEqual(['p-charlie']);
     });
 
+    it('all-products narrowed to a node list, titled from the nodes; unknown ids ignored', async () => {
+      const r = await list({ scope: 'all', nodes: 'men/bottomwear,women/dresses,nope/x' });
+      expect(ids(r).sort()).toEqual(['p-delta', 'p-golf']);
+      expect(r.body.scope.title).toBe('Bottomwear, Dresses');
+      expect((await list({ scope: 'all', nodes: 'nope/x' })).body.totalCount).toBe(33);
+    });
+
     it('bank-offer listing applies the eligibility filter as a removable chip (LND-004, PLP-006)', async () => {
       const on = await list({ scope: 'bank-offer' });
       expect(on.body.applied.bankOffer).toBe(true);

@@ -287,3 +287,20 @@ A short chronological record of the important steps, decisions and changes on th
     - A focusable invisible "Apply price" button was removed.
     - Main bundle: zod had been pulled in (189.8 KB gzip) → 163.4 KB after the fix (budget 170; the Stage 5 baseline rebuilt today is 152.5 KB).
 64. **Tests:** lint and typecheck pass; shared 26, backend 154 (+19 listing integration tests on a hand-written fixture: every scope, filter, facet, sort, cursor and pruning), frontend 17 (+5 URL-state tests); E2E 77 passed / 10 viewport-skipped on Chromium, Firefox and mobile, including PLP-007/008/009/010/014, the bank-offer chip and axe. **Not done:** Lighthouse is not installed yet. The performance gate for this stage was the bundle budget plus API latency; Lighthouse runs are deferred to Stage 22 (hardening).
+
+## 2026-10-07 — Stage 7: Landing page (complete)
+
+65. **Gap from Stage 6 closed:** the seeded Shop by Category links use `/shop/all?nodes=…`. Added a `nodes` scope to ListProducts: it narrows "all" to those nodes, the title is built from the node names, and unknown ids are ignored. On the client it's a scope key: kept by Clear all and never shown as a chip.
+66. **Backend:** `GET /content/landing` returns active hero slides in order (at most 8, R-38), the active bank offer within its validity dates, and active cards in order. It's read on every request (60 s HTTP cache), so data changes appear without code changes.
+67. **Frontend:**
+    - Landing page in LND-001 order. The footer comes from the layout.
+    - **`HeroCarousel`:**
+      - Crossfade, autoplay every 5 s.
+      - Pauses on hover, on focus inside, and via Pause/Play.
+      - Previous/Next controls (44 px), slide dots, touch swipe.
+      - Inactive slides are `inert`; the live region is polite only while paused.
+      - The first image is eager with `fetchpriority=high` (LCP); a reduced-motion preference disables the transitions.
+    - **Bank-offer tile:** the whole tile links to `/offers/hdfc`; "T&C apply" opens the terms in a Dialog.
+    - **Shop by Category:** 3:4 crops, 2/4/5/6 columns at <768/768/1024/1280, and the whole card is a link.
+    - Image alt text is empty for decorative photos next to their text, so stock-photo captions don't mislead screen-reader users.
+68. **Tests:** lint and typecheck pass; shared 26, backend 157 (+3: landing content, a data-added card appears, inactive hidden, slide cap 8; nodes scope), frontend 17; E2E 104 passed / 10 viewport-skipped, including landing order, carousel controls/autoplay/pause, bank-offer terms and link, card navigation, column counts at four widths, and axe. Main bundle 165.8 KB gzip (budget 170). Lighthouse is still deferred to Stage 22.
