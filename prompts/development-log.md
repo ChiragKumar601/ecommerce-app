@@ -391,3 +391,30 @@ A short chronological record of the important steps, decisions and changes on th
     - **Implementation choice:** forms use a small `useZodForm` hook over the shared zod schemas instead of react-hook-form. It's the same behaviour (validate on blur and submit, field errors linked and announced, inputs kept except secrets) with no extra dependency.
 82. **Bug fixed:** the constraints test created a review for an account that didn't exist, which the new M4 foreign key rejected. The test now creates the account and also checks the one-identifier CHECK.
 83. **Tests:** lint and typecheck pass; shared 26, backend 225, frontend 19 (+2 intent-resume); E2E 161 passed / 16 viewport-skipped, including sign-up validation, guard → login → return, the wrong-password message, logout confirmation, UF-13 (neutral wrong question, normalised answer, notice at next login) and axe on the auth pages. Auth pages checked at 360 and 1280 px with no horizontal scroll.
+
+## 2026-10-07 — Stage 11: Bag, wishlist, merge (complete)
+
+84. **Backend:**
+    - Migration M5: `Bag`, `BagLine` (quantity CHECK 1–10, `lastSeenUnitPrice`), `WishlistEntry`.
+    - `services/pricing.ts` loads the delivery config, bank offer, coupons, line data and tax rates (most specific node wins) for the pure quote engine, and formats the quote as `{paise, display}` (API-005).
+    - `services/bag.ts`: one set of line rules for guests and customers:
+      - add capped at min(10, available) with "Only n available" / "Maximum 10 per item"
+      - quantity changes capped to available
+      - 50-line limit
+      - flags: No longer available, Out of stock, Only n left (checkout blocked)
+      - "Price changed from ₹X to ₹Y", reported once
+      - coupon apply with specific reasons, and auto-removal with "Coupon X removed: reason"
+      - an available-coupons list with each coupon's status
+      - bank-offer preview and the free-delivery nudge
+    - Guest bags are priced through `POST /bag/guest-quote` and never stored (PR-25). The server returns the normalised device lines.
+    - Wishlist API (list 24 per page with statuses, ids, add/remove, move to bag with a size check, guest view).
+    - Login and sign-up merge the guest bag (sum and cap with messages, 50-line limit with a message, flagged lines carried over), wishlist (union) and coupon (the account's coupon wins).
+    - The per-customer coupon count returns 0 until orders exist (S15).
+85. **Frontend:**
+    - `useBag` / `bagAction` / `useBagCount` work over the device store (guest) or the API (customer); the header badge counts units.
+    - Bag page: lines with quantity, Remove with a 5-second Undo, Move to Wishlist, flags and fix actions, coupon box and available-coupons dialog, bank-offer preview, price summary with the tax line and nudge, guest pincode delivery block, empty state, and Proceed to Checkout (guests get the login prompt; the `checkout` intent resumes).
+    - Wishlist page: cards with statuses, Remove, Move to Bag with a size picker, pages of 24, empty state.
+    - Product page: Add to Bag (size required, then "Go to Bag"), Buy Now (login prompt and resume for guests; goes to `/checkout/buy-now`, built in S14), stale-data handling and "Price updated".
+    - The account wishlist toggle is optimistic and reverts on error.
+    - Customer delivery details from the default address follow in S13 (PR-09).
+86. **Tests:** lint and typecheck pass; shared 26, backend 241 (+16 bag/wishlist/merge: guest quote amounts and tax, add caps, flags, price change, every coupon reason and auto-removal, bank-offer preview, stored bag operations, line limit, wishlist statuses and move-to-bag, merge with caps and messages, coupon precedence, EC-15); frontend 19; E2E 176 passed / 16 viewport-skipped, including UF-01, the bag page flows, wishlist move-to-bag, UF-03 (guest bag → login prompt → merged account bag) and axe on the bag. Bag and PDP checked at 360 and 1280 px with no horizontal scroll.

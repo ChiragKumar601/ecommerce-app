@@ -18,8 +18,3 @@ export function useSite() {
 export function useNav() {
   return useQuery({ queryKey: qk.nav, queryFn: () => api<NavNode[]>('/nav'), staleTime: 5 * 60_000 });
 }
-
-/** Number of units in the bag (NAV-004). Wired to the bag in Stage 11. */
-export function useBagCount(): number {
-  return 0;
-}

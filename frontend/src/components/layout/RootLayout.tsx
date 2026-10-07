@@ -4,6 +4,7 @@ import { Footer } from '../nav/Footer';
 import { Header } from '../nav/Header';
 import { Toaster } from '../ui/toast';
 import { AuthDialogs } from '../auth/AuthDialogs';
+import '../../features/intents';
 import { DemoBanner } from './DemoBanner';
 import { Seo } from './Seo';
 

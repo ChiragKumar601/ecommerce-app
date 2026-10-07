@@ -53,6 +53,8 @@ export const routes: RouteObject[] = [
             handle: { title: (d: unknown) => (d as { title: string }).title },
           },
           ...authRoutes,
+          { path: 'bag', lazy: async () => ({ Component: (await import('./routes/bag/BagPage')).BagPage }), handle: { title: () => 'Bag' } },
+          { path: 'wishlist', lazy: async () => ({ Component: (await import('./routes/bag/WishlistPage')).WishlistPage }), handle: { title: () => 'Wishlist' } },
           ...accountRoutes,
           ...devRoutes,
           ...listingRoutes,

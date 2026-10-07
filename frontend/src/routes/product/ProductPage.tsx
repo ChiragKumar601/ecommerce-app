@@ -1,14 +1,19 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { BadgePercent, Heart, MapPin, RotateCcw, Ruler, Tag, Truck } from 'lucide-react';
+import { ArrowRight, BadgePercent, Heart, MapPin, RotateCcw, Ruler, ShoppingBag, Tag, Truck, Zap } from 'lucide-react';
 import { useId, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
+import { promptLogin } from '../../components/auth/AuthDialogs';
+import { toast } from '../../components/ui/toast';
+import { bagAction } from '../../features/bag';
+import { useAccount } from '../../features/session';
+import { queryClient } from '../../lib/query';
 import { Gallery } from '../../components/product/Gallery';
 import { RecommendationRail } from '../../components/product/Rail';
 import { ReviewSection } from '../../components/product/ReviewSection';
 import { Accordion, Breadcrumbs, Button, Dialog, EmptyState, Input, PageLayout, PriceTag, RatingBadge } from '../../components/ui';
 import { parseProductParam, productQuery, recsQuery, type ActiveProduct, type Product, type Variant } from '../../features/product';
 import { toggleWishlist, useWishlistIds } from '../../features/wishlist';
-import { api, ApiError } from '../../lib/api-client';
+import { api, ApiError, errorMessage } from '../../lib/api-client';
 import { cn } from '../../lib/cn';
 import { deviceStore, useDevice } from '../../lib/device-store';
 
@@ -29,7 +34,7 @@ function useCrumbs(p: Product) {
 }
 
 /** Size selector (PDP-003): out-of-stock sizes disabled, struck through, named "… Out of stock". */
-function SizeSelector({ variants, selected, onSelect, error, sizeGuide }: { variants: Variant[]; selected: string | null; onSelect: (id: string) => void; error?: string; sizeGuide: ActiveProduct['sizeGuide'] }) {
+function SizeSelector({ variants, selected, onSelect, error, sizeGuide }: { variants: Variant[]; selected: string | null; onSelect: (id: string) => void; error?: string | null; sizeGuide: ActiveProduct['sizeGuide'] }) {
   const id = useId();
   const [guide, setGuide] = useState(false);
   return (
@@ -178,6 +183,72 @@ function OffersBlock({ offers }: { offers: ActiveProduct['offers'] }) {
   );
 }
 
+/**
+ * Add to Bag and Buy Now (PDP-004, PDP-008, PDP-009, PDP-012). A size is required when there's more
+ * than one; after adding, the control becomes "Go to Bag". Refusals refresh the product and show the
+ * specific message; a new price is shown with "Price updated".
+ */
+function PurchaseActions({ p, selected, onNeedSize, added, setAdded, disabled }: { p: ActiveProduct; selected: string | null; onNeedSize: () => void; added: boolean; setAdded: (v: boolean) => void; disabled: boolean }) {
+  const [busy, setBusy] = useState<'bag' | 'buy' | null>(null);
+  const [blocked, setBlocked] = useState<string | null>(null);
+  const account = useAccount();
+  const navigate = useNavigate();
+  const variant = p.variants.find((v) => v.id === selected) ?? null;
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ['product', p.id] });
+
+  const refused = (e: unknown) => {
+    if (e instanceof ApiError && (e.code === 'PRODUCT_INACTIVE' || e.code === 'OUT_OF_STOCK')) {
+      setBlocked(e.message);
+      void refresh();
+    }
+    toast({ title: errorMessage(e), tone: 'danger' });
+  };
+
+  const addToBag = async () => {
+    if (!variant) return onNeedSize();
+    setBusy('bag');
+    try {
+      const view = await bagAction({ type: 'add', variantId: variant.id });
+      const line = view.lines.find((l) => l.variantId === variant.id);
+      if (line && line.unitPrice.paise !== variant.price.paise) {
+        void refresh();
+        toast({ title: 'Price updated', description: `${p.name} is now ${line.unitPrice.display}` });
+      }
+      setAdded(true);
+      toast({ title: view.message ?? 'Added to bag', description: view.message ? undefined : `${p.brand.name} ${p.name} · ${variant.sizeLabel}`, tone: view.message ? 'default' : 'success', action: { label: 'View bag', onClick: () => navigate('/bag') } });
+    } catch (e) {
+      refused(e);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const buyNow = async () => {
+    if (!variant) return onNeedSize();
+    if (!account) return promptLogin({ action: 'buy-now', payload: { variantId: variant.id }, title: 'Log in to buy now' });
+    navigate(`/checkout/buy-now?variant=${encodeURIComponent(variant.id)}`);
+  };
+
+  const off = disabled || !!blocked || (variant !== null && variant.available === 0);
+  return (
+    <div className="mt-6">
+      {blocked && <p role="alert" className="mb-3 text-small font-semibold text-danger">{blocked}</p>}
+      <div className="flex gap-3">
+        {added ? (
+          <Button asChild variant="brand" size="lg" block><Link to="/bag">Go to Bag <ArrowRight className="size-5" aria-hidden="true" /></Link></Button>
+        ) : (
+          <Button variant="brand" size="lg" block onClick={addToBag} loading={busy === 'bag'} disabled={off}>
+            <ShoppingBag className="size-5" aria-hidden="true" />Add to Bag
+          </Button>
+        )}
+        <Button size="lg" block onClick={buyNow} loading={busy === 'buy'} disabled={off}>
+          <Zap className="size-5" aria-hidden="true" />Buy Now
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function Rails({ id, similarOnly }: { id: string; similarOnly?: boolean }) {
   const { data } = useQuery(recsQuery(id));
   if (!data) return null;
@@ -199,6 +270,8 @@ function ActiveProductView({ p }: { p: ActiveProduct }) {
   const crumbs = useCrumbs(p);
   const wishlist = useWishlistIds();
   const [selected, setSelected] = useState<string | null>(p.oneSize ? p.variants[0]!.id : null);
+  const [sizeError, setSizeError] = useState<string | null>(null);
+  const [added, setAdded] = useState(false);
   const shown = p.variants.find((v) => v.id === (selected ?? p.defaultVariantId)) ?? p.variants[0]!;
   const wished = wishlist.has(p.id);
   const allOut = p.variants.every((v) => v.available === 0);
@@ -244,9 +317,13 @@ function ActiveProductView({ p }: { p: ActiveProduct }) {
             </div>
           )}
 
-          <SizeSelector variants={p.variants} selected={selected} onSelect={setSelected} sizeGuide={p.sizeGuide} />
+          <SizeSelector variants={p.variants} selected={selected} onSelect={(id) => { setSelected(id); setSizeError(null); setAdded(false); }} error={sizeError} sizeGuide={p.sizeGuide} />
 
-          <div className="mt-6 flex gap-3">
+          <PurchaseActions p={p} selected={selected} onNeedSize={() => {
+            setSizeError('Please select a size');
+            document.querySelector<HTMLElement>('[data-size-selector] [role=radio]:not([disabled])')?.focus();
+          }} added={added} setAdded={setAdded} disabled={allOut} />
+          <div className="mt-3">
             <Button variant="secondary" size="lg" block aria-pressed={wished} onClick={() => toggleWishlist(p.id, p.name)}>
               <Heart className={cn('size-5', wished && 'fill-brand text-brand')} aria-hidden="true" />
               {wished ? 'Wishlisted' : 'Wishlist'}

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { V } from './messages.ts';
+import { deviceBagLineSchema } from './bag.ts';
 import { ageConfirmSchema, emailSchema, identifierSchema, nameSchema, passwordSchema, phoneSchema, securityAnswerSchema } from './fields.ts';
 
 // Auth form schemas (AUTH-001, AUTH-004, AUTH-008/009). The same rules run on the client and the server (VAL-001).
@@ -10,8 +11,11 @@ const optional = <T extends z.ZodType>(schema: T) => z.union([z.literal('').tran
 export const guestDataSchema = z
   .object({
     recentSearches: z.array(z.string().trim().min(1).max(100)).max(10).default([]),
+    bag: z.array(deviceBagLineSchema).max(50).default([]),
+    wishlist: z.array(z.string().min(1).max(64)).max(1000).default([]),
+    coupon: z.string().max(20).nullable().default(null),
   })
-  .default({ recentSearches: [] });
+  .default({ recentSearches: [], bag: [], wishlist: [], coupon: null });
 
 export const signupSchema = z
   .object({

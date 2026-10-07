@@ -229,6 +229,7 @@ model Product {
   curatedIn         ProductCuratedRec[] @relation("RecTarget")
   reviews           Review[]
   ratingAggregate   RatingAggregate?
+  wishlistEntries   WishlistEntry[]
 
   @@index([active, listingDate])
   @@index([styleGroupId])
@@ -255,6 +256,7 @@ model Variant {
   sellingPrice Int
   active       Boolean    @default(true)
   inventory    Inventory?
+  bagLines     BagLine[]
 
   @@index([productId])
 }
@@ -390,6 +392,9 @@ model Account {
   creditEntries               CreditLedgerEntry[]
   resetTokens                 PasswordResetToken[]
   reviews                     Review[]
+  bag                         Bag?
+  bagLines                    BagLine[]
+  wishlist                    WishlistEntry[]
 }
 
 /// Server-side session; the cookie carries a random token, the table stores its SHA-256 (SEC-001).
@@ -460,4 +465,40 @@ model CreditLedgerEntry {
   createdAt DateTime @default(now())
 
   @@index([accountId, createdAt])
+}
+
+// ───────────────────────── M5 bag & wishlist (Stage 11) ─────────────────────────
+
+/// A customer's bag (spec §4.5); guest bags live on the device. Survives indefinitely (BAG-013).
+model Bag {
+  accountId  String   @id
+  account    Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  couponCode String?
+  updatedAt  DateTime @updatedAt
+}
+
+/// Unique per variant within a bag; quantity 1–10 (CHECK in SQL); at most 50 lines (service rule).
+model BagLine {
+  accountId         String
+  account           Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  variantId         String
+  variant           Variant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  quantity          Int
+  addedAt           DateTime
+  /// Unit price the customer last saw, for "Price changed from ₹X to ₹Y" (BAG-004).
+  lastSeenUnitPrice Int
+
+  @@id([accountId, variantId])
+}
+
+/// Wishlist entry: a product, not a size; unique per product (T-26).
+model WishlistEntry {
+  accountId String
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  addedAt   DateTime
+
+  @@id([accountId, productId])
+  @@index([accountId, addedAt])
 }

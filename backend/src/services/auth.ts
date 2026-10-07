@@ -6,6 +6,8 @@ import { newId } from '../domain/ids.js';
 import { addMs, formatIstDateTime } from '../domain/time.js';
 import type { Account } from '../generated/prisma/client.js';
 import { hashSecret, randomToken, sha256, verifySecret } from '../lib/crypto.js';
+import { mergeGuestBag } from './bag.js';
+import { mergeGuestWishlist } from './wishlist.js';
 
 // Accounts, authentication and sessions (spec §6.8; plan S10.1–S10.5).
 
@@ -102,10 +104,11 @@ export async function clearRecentSearches(ctx: AppContext, accountId: string) {
   await ctx.db.recentSearch.deleteMany({ where: { accountId } });
 }
 
-/** Guest data merged into the account at login/sign-up (AUTH-012). Bag and wishlist join in Stage 11. */
+/** Guest data merged into the account at login/sign-up (AUTH-012): bag, wishlist, coupon, recent searches. */
 async function mergeGuest(ctx: AppContext, accountId: string, guest: GuestData): Promise<string[]> {
   if (guest.recentSearches.length) await addRecentSearches(ctx, accountId, guest.recentSearches);
-  return [];
+  await mergeGuestWishlist(ctx, accountId, guest.wishlist);
+  return mergeGuestBag(ctx, accountId, { lines: guest.bag, coupon: guest.coupon });
 }
 
 // ── Sign-up (AUTH-001…003) ───────────────────────────────────────────────────

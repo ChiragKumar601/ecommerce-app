@@ -73,11 +73,16 @@ export function returnToFrom(search: string, fallback = '/'): string {
 /** Guest device data sent with login and sign-up. */
 export function guestPayload() {
   const d = deviceStore.get();
-  return { recentSearches: d.recentSearches };
+  return {
+    recentSearches: d.recentSearches,
+    bag: d.bag,
+    wishlist: d.wishlist.map((w) => w.productId),
+    coupon: d.bagCoupon,
+  };
 }
 
-/** Device data that moves to the account at login (the bag and wishlist join in Stage 11). */
-const MERGED_PARTS: Parameters<typeof deviceStore.clear>[0] = ['recentSearches'];
+/** Device data that moves to the account at login (AUTH-012) and is removed at logout (AUTH-013). */
+const MERGED_PARTS: Parameters<typeof deviceStore.clear>[0] = ['recentSearches', 'bag', 'bagCoupon', 'wishlist'];
 
 interface AuthResult {
   account: Account;
