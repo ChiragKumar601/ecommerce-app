@@ -2,20 +2,12 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { ArrowRight, BadgePercent } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { HeroCarousel, type HeroSlide } from '../components/landing/HeroCarousel';
-import { Dialog, PageLayout, Section } from '../components/ui';
-import { api } from '../lib/api-client';
-import { queryClient } from '../lib/query';
+import { HeroCarousel } from '../components/landing/HeroCarousel';
+import { PageLayout, Section } from '../components/ui/layout';
+import { Dialog } from '../components/ui/overlay';
+import { landingQuery, type Landing } from '../features/content';
 
-interface Landing {
-  slides: HeroSlide[];
-  bankOffer: { id: string; bankName: string; summary: string; termsText: string; href: string } | null;
-  cards: { id: string; name: string; image: { url: string; alt: string }; discountText: string; href: string }[];
-}
 
-const landingQuery = { queryKey: ['landing'], queryFn: () => api<Landing>('/content/landing'), staleTime: 5 * 60_000 };
-
-export const homeLoader = () => queryClient.ensureQueryData(landingQuery);
 
 /** Bank-offer tile (LND-004): opens the offer listing; "T&C apply" opens the terms. */
 function BankOfferTile({ offer }: { offer: NonNullable<Landing['bankOffer']> }) {

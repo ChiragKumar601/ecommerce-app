@@ -1,6 +1,7 @@
 import type { ListingScopeInfo } from '@app/shared';
 import type { RouteObject } from 'react-router';
 import { listingLoader } from './query';
+import { productLoader, type Product } from '../product';
 
 const lazyPage = (name: 'SectionListing' | 'SearchListing' | 'NodeListing' | 'AllListing' | 'BestSellerListing' | 'BankOfferListing') => async () => ({
   Component: (await import('../../routes/listing'))[name],
@@ -28,6 +29,13 @@ export const listingRoutes: RouteObject[] = [
     },
     lazy: lazyPage('SearchListing'),
     handle: { title },
+  },
+  {
+    path: 'p/:slugId',
+    loader: productLoader,
+    lazy: async () => ({ Component: (await import('../../routes/product/ProductPage')).ProductPage }),
+    // "<Product name> – <Brand>" (FE-007).
+    handle: { title: (d: unknown) => `${(d as Product).name} – ${(d as Product).brand.name}` },
   },
   { path: 'offers/hdfc', loader: listingLoader(() => ({ scope: 'bank-offer' })), lazy: lazyPage('BankOfferListing'), handle: { title } },
   {

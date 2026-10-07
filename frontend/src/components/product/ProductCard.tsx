@@ -1,6 +1,6 @@
 import { Heart } from 'lucide-react';
 import { memo } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import type { ProductCardData } from '@app/shared';
 import { cn } from '../../lib/cn';
 import { Badge, PriceTag, RatingBadge, Skeleton } from '../ui';
@@ -16,10 +16,12 @@ export const ProductCard = memo(function ProductCard({ product, wishlisted, onTo
   priority?: boolean;
 }) {
   const p = product;
+  // The listing path travels with the link, for product breadcrumbs (NAV-010).
+  const from = useLocation().pathname;
   return (
     <article className="group relative flex flex-col" aria-labelledby={`pc-${p.id}`}>
       <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-surface-muted">
-        <Link to={p.href} tabIndex={-1} aria-hidden="true" className="absolute inset-0">
+        <Link to={p.href} state={{ from }} tabIndex={-1} aria-hidden="true" className="absolute inset-0">
           {p.image ? (
             <>
               <img
@@ -55,7 +57,7 @@ export const ProductCard = memo(function ProductCard({ product, wishlisted, onTo
       <div className="mt-2.5 flex min-w-0 flex-col gap-0.5 px-0.5">
         <p className="truncate text-small font-bold text-ink">{p.brand}</p>
         <h3 id={`pc-${p.id}`} className="truncate text-small text-ink-soft">
-          <Link to={p.href} className="after:absolute after:inset-x-0 after:bottom-0 after:top-[calc(100%-5rem)] hover:underline focus-visible:outline-none" title={p.name}>
+          <Link to={p.href} state={{ from }} className="after:absolute after:inset-x-0 after:bottom-0 after:top-[calc(100%-5rem)] hover:underline focus-visible:outline-none" title={p.name}>
             {p.name}
           </Link>
         </h3>

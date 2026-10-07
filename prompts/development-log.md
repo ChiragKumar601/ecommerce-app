@@ -329,3 +329,43 @@ A short chronological record of the important steps, decisions and changes on th
     - Escape in a `type=search` input cleared the text and reopened the list.
     - Category facet ordering produced NaN for added nodes.
 73. **Tests:** lint and typecheck pass; shared 26, backend 201 (+40 index: a 33-case typo set over the full generated catalogue, OSA, ranking, fields, stemming, latency; +4 search/suggest API), frontend 17; E2E 119 passed / 16 viewport-skipped, including UF-02 (typo → suggestions → results → recent → clear), keyboard selection, product/category suggestions, filters on results, zero results, empty query and the mobile overlay. Main bundle 167.9 KB gzip (budget 170: later pages must stay lazy).
+
+## 2026-10-07 — Stage 9: Product detail page, read side (complete)
+
+74. **Backend:**
+    - **`GET /products/:id`:**
+      - Brand, name, subtitle, description, material & care, specifications, ordered images (alt text describes the product), and variants with `available`.
+      - Default variant = lowest-priced available.
+      - Rating aggregate with distribution.
+      - Offers: bank offer only when eligible and valid; up to 3 valid coupons whose nodes include the product.
+      - Return eligibility line, size guide, colour siblings (same style group).
+      - Breadcrumb hints: the primary chain, plus every listing node containing the product, with labels.
+      - **Inactive products** return `active: false` with no purchase data (PDP-013).
+    - **`GET /products/:id/recommendations`** (also works for inactive products):
+      - Similar: same subcategory, card price within ±30%.
+      - Related: same brand or section.
+      - Bought together and Complete the look: curated.
+      - Each rail ≤ 12, in-stock first, ranked by the Recommended score.
+    - **`GET /products/:id/reviews`:** visible only, 10 per page; sort recent/highest/lowest; star and with-images filters.
+    - **`GET /pincode/:pin`:** IST delivery date by zone, the free-delivery rule, the unserviceable message, and 6-digit validation.
+75. **Frontend `/p/:slug-:id`:**
+    - Static loader, lazy page. Edited or stale slugs redirect to the canonical URL. Title "<Product> – <Brand>".
+    - **Gallery** with thumbnails and a **full-screen viewer:** click to zoom at the pointer (2.2×), pinch allowed, swipe/arrows, Escape.
+    - Size selector: out-of-stock sizes disabled, struck through and named "…, Out of stock"; "n left" hint for low stock; One Size auto-selected. The price follows the selected (or default) variant, plus "Inclusive of all taxes".
+    - More-colours swatches, size-guide dialog with a table.
+    - **Pincode check:** remembered on the device and re-checked on return.
+    - Offers block with a T&C dialog, return line, details accordion.
+    - **Reviews:** aggregate with 5→1 bars; star / with-images filters, sort, Load more.
+    - Four recommendation rails (horizontal snap scrolling with desktop scroll buttons).
+    - Device wishlist button.
+    - **Breadcrumbs (NAV-010):** product links carry the listing path in router state. If the product belongs to that listing, the crumbs follow it (labels from the API); otherwise the primary path.
+    - Add to Bag / Buy Now arrive with the bag in S11.
+76. **Bugs found and fixed:**
+    - The main image was vertically centred inside a stretched grid cell (button default). Now pinned to the top.
+    - Tests scoped where the footer repeats "Easy 14-day returns", and wait for the PDP to render before counting sizes.
+77. **Bundle discipline (FE-006):** the main chunk had reached 168.5 KB because shell components imported the `ui` barrel, pulling every Radix primitive into the initial chunk.
+    - Home and ContentPage are now lazy; their loaders live in `features/content.ts`.
+    - Plain controls moved to `ui/input.tsx`.
+    - Shell files import specific ui modules.
+    - Measured in a production preview, JS downloaded on `/`: **157.2 KB gzip** (budget 170). PLP is 171 KB and PDP 174 KB; the budget applies to the landing route. Lighthouse is still deferred to Stage 22.
+78. **Tests:** lint and typecheck pass; shared 26, backend 208 (+7 PDP API: variants/default, offers eligibility, returns/colours/breadcrumb nodes, inactive and unknown products, recommendation rules, reviews sort/filter/hidden, pincode); frontend 17; E2E 149 passed / 16 viewport-skipped, including PDP content and title, canonical redirect, sizes, viewer, pincode (and remembered), offers/size guide/specs, reviews, rails, wishlist and axe.

@@ -2,7 +2,7 @@ import { Outlet, ScrollRestoration } from 'react-router';
 import { SITE_FALLBACK, useSite } from '../../features/site';
 import { Footer } from '../nav/Footer';
 import { Header } from '../nav/Header';
-import { Toaster } from '../ui';
+import { Toaster } from '../ui/toast';
 import { DemoBanner } from './DemoBanner';
 import { Seo } from './Seo';
 

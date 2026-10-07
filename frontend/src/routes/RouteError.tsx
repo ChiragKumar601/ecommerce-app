@@ -1,6 +1,7 @@
 import { isRouteErrorResponse, useRouteError } from 'react-router';
 import { ApiError } from '../lib/api-client';
-import { ErrorState, PageLayout } from '../components/ui';
+import { ErrorState } from '../components/ui/feedback';
+import { PageLayout } from '../components/ui/layout';
 import { NotFound } from './NotFound';
 import { useDocumentTitle } from '../components/layout/Seo';
 

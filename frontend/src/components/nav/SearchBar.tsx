@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { addRecentSearch, clearRecentSearches, SUGGEST_MAX, SUGGEST_MIN_CHARS, useDebounced, useRecentSearches, useSuggestions } from '../../features/search';
 import { SITE_FALLBACK, useSite } from '../../features/site';
 import { cn } from '../../lib/cn';
-import { IconButton } from '../ui';
+import { IconButton } from '../ui/button';
 
 type Option = { key: string; href: string; term?: string; group: string; content: ReactNode };
 

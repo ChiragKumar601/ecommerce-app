@@ -1,16 +1,8 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { useParams, type LoaderFunctionArgs } from 'react-router';
+import { useParams } from 'react-router';
 import { Badge, Breadcrumbs, PageLayout } from '../components/ui';
-import { api } from '../lib/api-client';
 import { renderMarkdown } from '../lib/markdown';
-import { qk, queryClient } from '../lib/query';
-
-interface Page { slug: string; title: string; body: string; isPlaceholder: boolean }
-const pageQuery = (slug: string) => ({ queryKey: qk.page(slug), queryFn: () => api<Page>(`/content/pages/${slug}`), staleTime: 5 * 60_000 });
-
-export async function contentPageLoader({ params }: LoaderFunctionArgs) {
-  return queryClient.ensureQueryData(pageQuery(params['slug']!));
-}
+import { pageQuery } from '../features/content';
 
 /** Content and policy pages, labelled when placeholder (LND-008, PRV-004). */
 export function ContentPage() {

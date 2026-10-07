@@ -3,7 +3,8 @@ import { ChevronDown, Menu } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { Link } from 'react-router';
 import type { NavNode } from '../../lib/query';
-import { IconButton, Sheet } from '../ui';
+import { IconButton } from '../ui/button';
+import { Sheet } from '../ui/overlay';
 
 /** Slide-out menu below 1024 px (NAV-006): Section → Category → Subcategory; traps and restores focus. */
 export function MobileDrawer({ sections }: { sections: NavNode[] }) {

@@ -76,7 +76,7 @@ const tee = (id: string, over: Partial<FxProduct> = {}): FxProduct => ({
 export function listingFixture(): FxProduct[] {
   const known: FxProduct[] = [
     { id: 'p-alpha', name: 'Alpha Crew Tee', brand: 'Northlane', colour: 'Black', nodes: ['men/topwear/t-shirts'], variants: [{ size: 'S', mrp: 1999, price: 999, stock: 0 }, { size: 'M', mrp: 1999, price: 1299, stock: 4 }, { size: 'L', mrp: 1999, price: 1499, stock: 2 }], daysAgo: 1, rating: { count: 120, avg: 4.5 }, bestSeller: true, bankOffer: true },
-    { id: 'p-bravo', name: 'Bravo Polo', brand: 'Northlane', colour: 'Navy', nodes: ['men/topwear/t-shirts'], variants: [{ size: 'M', mrp: 2499, price: 2499, stock: 3 }], daysAgo: 10, rating: { count: 8, avg: 3.4 } },
+    { id: 'p-bravo', name: 'Bravo Polo', brand: 'Northlane', colour: 'Navy', styleGroup: 'p-alpha', nodes: ['men/topwear/t-shirts'], variants: [{ size: 'M', mrp: 2499, price: 2499, stock: 3 }], daysAgo: 10, rating: { count: 8, avg: 3.4 } },
     { id: 'p-charlie', name: 'Charlie Oxford Shirt', brand: 'Kestrel', colour: 'White', nodes: ['men/topwear/casual-shirts'], variants: [{ size: 'L', mrp: 3000, price: 1500, stock: 1 }], daysAgo: 5, rating: { count: 40, avg: 4.1 }, inclusive: true },
     { id: 'p-delta', name: 'Delta Slim Jeans', brand: 'Kestrel', colour: 'Blue', nodes: ['men/bottomwear/jeans', 'women/bottomwear/jeans'], gender: 'unisex', variants: [{ size: '32', mrp: 2999, price: 2099, stock: 6 }], daysAgo: 60, bankOffer: true },
     { id: 'p-echo', name: 'Echo Linen Shirt', brand: 'Northlane', colour: 'White', nodes: ['men/topwear/casual-shirts'], variants: [{ size: 'M', mrp: 1799, price: 899, stock: 0 }, { size: 'L', mrp: 1799, price: 799, stock: 0 }], daysAgo: 2, rating: { count: 300, avg: 4.8 } },

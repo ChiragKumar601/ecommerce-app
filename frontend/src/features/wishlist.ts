@@ -1,4 +1,4 @@
-import { toast } from '../components/ui';
+import { toast } from '../components/ui/toast';
 import { deviceStore, useDevice } from '../lib/device-store';
 
 /**
