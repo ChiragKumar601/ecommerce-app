@@ -1,0 +1,32 @@
+{
+  "_source": "Footer content (LND-007). The order of blocks is fixed by the spec; the company details come from settings (company.sampleDetails).",
+  "usefulLinks": [
+    { "label": "Blog", "href": "/pages/blog" },
+    { "label": "Careers", "href": "/pages/careers" },
+    { "label": "Sitemap", "href": "/pages/sitemap" },
+    { "label": "Corporate Information", "href": "/pages/corporate-information" }
+  ],
+  "policyLinks": [
+    { "label": "Terms of Use", "href": "/pages/terms-of-use" },
+    { "label": "Privacy Policy", "href": "/pages/privacy-policy" },
+    { "label": "Returns & Refunds Policy", "href": "/pages/returns-and-refunds-policy" },
+    { "label": "Shipping Policy", "href": "/pages/shipping-policy" }
+  ],
+  "trustPointers": [
+    { "title": "100% ORIGINAL", "text": "Guaranteed for all products on this store" },
+    { "title": "Easy 14-day returns on eligible items", "text": "Return within 14 days of delivery" },
+    { "title": "Free delivery above ₹1,999", "text": "On the bag value after discounts and coupon" }
+  ],
+  "howWeMakeShoppingEasy": [
+    { "title": "Everything in one place", "text": "Fashion, beauty, home and kids — for every age and style." },
+    { "title": "Prices you can trust", "text": "Every price, offer and total is checked before you pay." },
+    { "title": "Flexible payment", "text": "Pay by card, UPI, gift card, credits or cash on delivery." },
+    { "title": "Track every order", "text": "Follow each step from Placed to Delivered, and return eligible items easily." }
+  ],
+  "social": [
+    { "label": "Instagram", "href": "https://www.instagram.com/" },
+    { "label": "Facebook", "href": "https://www.facebook.com/" },
+    { "label": "X", "href": "https://x.com/" },
+    { "label": "YouTube", "href": "https://www.youtube.com/" }
+  ]
+}

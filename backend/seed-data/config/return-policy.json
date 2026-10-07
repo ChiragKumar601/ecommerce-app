@@ -1,0 +1,16 @@
+{
+  "_source": "spec.md §5 returns.nonReturnable (R-17). Gen Z beauty and skincare are the same product types as the Beauty section, so they follow the same rule.",
+  "windowDays": 14,
+  "nonReturnableNodeIds": [
+    "men/innerwear",
+    "kids/boys-clothing/innerwear",
+    "kids/girls-clothing/innerwear",
+    "women/lingerie",
+    "beauty",
+    "men/personal-care",
+    "women/beauty-and-personal-care",
+    "kids/baby-care",
+    "gen-z/beauty",
+    "gen-z/skincare"
+  ]
+}

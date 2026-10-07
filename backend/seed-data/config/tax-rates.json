@@ -1,0 +1,17 @@
+{
+  "_source": "spec.md §5 tax.rates (SD-17): illustrative sample rates. The most specific node wins.",
+  "rates": {
+    "men": 5, "women": 5, "kids": 5, "gen-z": 5, "home": 18, "beauty": 18,
+    "men/personal-care": 18,
+    "women/beauty-and-personal-care": 18,
+    "women/jewellery": 3,
+    "gen-z/jewellery": 3,
+    "gen-z/beauty": 18,
+    "gen-z/skincare": 18,
+    "gen-z/gadgets": 18,
+    "gen-z/lifestyle": 18,
+    "kids/baby-care": 18,
+    "kids/toys": 12,
+    "kids/school-supplies": 12
+  }
+}

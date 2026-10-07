@@ -11,3 +11,341 @@ generator client {
 datasource db {
   provider = "sqlite"
 }
+
+// ───────────────────────── M1: config, content, reference (plan §6.2) ─────────────────────────
+
+/// Key/value settings from spec §5, incl. `catalogue_version` (plan §7.4).
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model HeroSlide {
+  id          String  @id
+  imageUrl    String
+  imageAlt    String
+  headline    String
+  subheadline String?
+  ctaLabel    String
+  href        String
+  order       Int
+  active      Boolean @default(true)
+}
+
+model ShopByCategoryCard {
+  id           String  @id
+  name         String
+  imageUrl     String
+  imageAlt     String
+  discountText String
+  href         String
+  order        Int
+  active       Boolean @default(true)
+}
+
+model PopularSearch {
+  term  String @id
+  order Int
+}
+
+model ContentPage {
+  slug          String  @id
+  title         String
+  body          String
+  isPlaceholder Boolean @default(true)
+}
+
+model FaqEntry {
+  id       String @id
+  topic    String
+  question String
+  answer   String
+  order    Int
+}
+
+model SecurityQuestion {
+  id     String  @id
+  text   String
+  order  Int
+  active Boolean @default(true)
+}
+
+model StateRef {
+  code String @id
+  name String @unique
+  type String // 'state' | 'ut'
+}
+
+model DeliveryZone {
+  zone         String               @id // 'A' | 'B' | 'C'
+  deliveryDays Int
+  pincodes     ServiceablePincode[]
+}
+
+model ServiceablePincode {
+  pincode String       @id
+  city    String
+  state   String
+  zone    String
+  zoneRef DeliveryZone @relation(fields: [zone], references: [zone])
+
+  @@index([zone])
+}
+
+/// Tax rate per catalogue node; the most specific node wins (R-35).
+model TaxRate {
+  nodeId      String        @id
+  node        CatalogueNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  ratePercent Int
+}
+
+/// Non-returnable catalogue nodes (R-17); a product is returnable unless any of its nodes is listed.
+model ReturnPolicyNode {
+  nodeId String        @id
+  node   CatalogueNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+}
+
+model Coupon {
+  code             String   @id // stored upper-case
+  description      String
+  type             String // 'percent' | 'flat'
+  value            Int
+  maxDiscount      Int?
+  minEligibleValue Int
+  eligibleNodeIds  Json // string[]; empty = all
+  validFrom        DateTime
+  validTo          DateTime
+  perCustomerLimit Int
+  active           Boolean  @default(true)
+}
+
+model BankOffer {
+  id               String   @id
+  bankName         String
+  cardTypes        Json // ('credit' | 'debit')[]
+  percent          Int
+  maxDiscount      Int
+  minEligibleValue Int
+  validFrom        DateTime
+  validTo          DateTime
+  summary          String
+  termsText        String
+  active           Boolean  @default(true)
+}
+
+/// Designated demo test cards (DAT-006). Public test numbers, published on /demo-help.
+model TestCard {
+  number        String  @id
+  last4         String
+  network       String
+  issuingBank   String
+  cardType      String // 'credit' | 'debit'
+  forcedOutcome String? // null = random outcome
+  label         String
+}
+
+model TestUpi {
+  upiId         String @id
+  forcedOutcome String
+}
+
+model GiftCardCode {
+  code         String  @id // stored upper-case
+  faceValue    Int
+  validityDays Int
+  active       Boolean @default(true)
+}
+
+model BlockedWord {
+  word String @id
+}
+
+// ───────────────────────── M2: catalogue (plan §6.2, spec §4.1) ─────────────────────────
+
+model CatalogueNode {
+  id           String            @id
+  type         String // 'section' | 'category' | 'subcategory'
+  name         String
+  slug         String
+  /// Full path of slugs, e.g. `men/topwear/t-shirts`. Unique.
+  path         String            @unique
+  parentId     String?
+  parent       CatalogueNode?    @relation("NodeTree", fields: [parentId], references: [id])
+  children     CatalogueNode[]   @relation("NodeTree")
+  displayOrder Int
+  active       Boolean           @default(true)
+  products     ProductNode[]
+  taxRate      TaxRate?
+  returnPolicy ReturnPolicyNode?
+
+  @@unique([parentId, slug])
+  @@index([type])
+}
+
+model Brand {
+  id       String    @id
+  name     String    @unique
+  slug     String    @unique
+  products Product[]
+}
+
+model SizeGuide {
+  id       String    @id
+  name     String
+  table    Json // { columns: string[]; rows: string[][] }
+  notes    String
+  products Product[]
+}
+
+model Product {
+  id                String              @id // short random id (public)
+  slug              String
+  brandId           String
+  brand             Brand               @relation(fields: [brandId], references: [id])
+  name              String
+  subtitle          String
+  description       String
+  materialCare      String
+  specifications    Json // { key: string; value: string }[]
+  primarySectionId  String
+  primaryNodeId     String
+  gender            String
+  colour            String
+  /// Products of the same style in other colours share this id ("More colours", PDP-003).
+  styleGroupId      String
+  listingDate       DateTime
+  bestSeller        Boolean             @default(false)
+  bankOfferEligible Boolean             @default(false)
+  returnable        Boolean             @default(true)
+  inclusiveSizing   Boolean             @default(false)
+  sizeGuideId       String?
+  sizeGuide         SizeGuide?          @relation(fields: [sizeGuideId], references: [id])
+  active            Boolean             @default(true)
+  nodes             ProductNode[]
+  variants          Variant[]
+  images            ProductImage[]
+  curatedRecs       ProductCuratedRec[] @relation("RecSource")
+  curatedIn         ProductCuratedRec[] @relation("RecTarget")
+  reviews           Review[]
+  ratingAggregate   RatingAggregate?
+
+  @@index([active, listingDate])
+  @@index([styleGroupId])
+  @@index([brandId])
+}
+
+model ProductNode {
+  productId String
+  nodeId    String
+  product   Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  node      CatalogueNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@id([productId, nodeId])
+  @@index([nodeId])
+}
+
+model Variant {
+  id           String     @id
+  productId    String
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sizeLabel    String
+  sortOrder    Int
+  mrp          Int
+  sellingPrice Int
+  active       Boolean    @default(true)
+  inventory    Inventory?
+
+  @@index([productId])
+}
+
+/// available = onHand − held, never below 0 (CHECK added in hand-written SQL).
+model Inventory {
+  variantId      String  @id
+  variant        Variant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  onHand         Int
+  held           Int     @default(0)
+  baselineOnHand Int
+}
+
+/// Every image records its source and licence (D-22).
+model ProductImage {
+  id              String  @id
+  productId       String
+  product         Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url             String
+  alt             String
+  order           Int
+  source          String // 'pexels'
+  sourcePageUrl   String
+  photographer    String
+  photographerUrl String?
+  licence         String
+
+  @@index([productId])
+}
+
+model ProductCuratedRec {
+  productId String
+  kind      String // 'bought_together' | 'complete_the_look'
+  targetId  String
+  order     Int
+  product   Product @relation("RecSource", fields: [productId], references: [id], onDelete: Cascade)
+  target    Product @relation("RecTarget", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@id([productId, kind, targetId])
+}
+
+// ───────────────────────── M3: reviews, read side (spec §4.2) ─────────────────────────
+
+model Review {
+  id                String         @id
+  productId         String
+  product           Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /// Null for seeded reviews and after an account is purged (PRV-003). FK added with accounts (M4).
+  authorAccountId   String?
+  authorDisplayName String
+  rating            Int
+  text              String?
+  verifiedPurchase  Boolean        @default(false)
+  status            String         @default("visible") // 'visible' | 'hidden'
+  seeded            Boolean        @default(false)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  images            ReviewImage[]
+  reports           ReviewReport[]
+
+  /// One review per account and product (REV-006). SQLite treats NULLs as distinct.
+  @@unique([authorAccountId, productId])
+  @@index([productId, status, createdAt])
+}
+
+model ReviewImage {
+  id       String @id
+  reviewId String
+  review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  url      String
+  order    Int
+}
+
+model ReviewReport {
+  reviewId          String
+  reporterAccountId String
+  createdAt         DateTime @default(now())
+  review            Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@id([reviewId, reporterAccountId])
+}
+
+/// Derived cache of visible reviews (PR-29); recomputed in the same transaction as review changes.
+model RatingAggregate {
+  productId  String  @id
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  count      Int
+  sumRatings Int
+  c1         Int
+  c2         Int
+  c3         Int
+  c4         Int
+  c5         Int
+}

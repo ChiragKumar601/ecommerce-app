@@ -1,0 +1,4 @@
+{
+  "_source": "Blocked words for review text (REV-007). Whole-word, case-insensitive. A small demo list of common English and Hindi profanity and slurs; extend as needed.",
+  "words": ["fuck", "fucking", "shit", "bitch", "bastard", "asshole", "dick", "cunt", "slut", "whore", "chutiya", "madarchod", "behenchod", "bhenchod", "harami", "randi", "gandu", "kutta"]
+}

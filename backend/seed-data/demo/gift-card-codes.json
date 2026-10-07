@@ -1,0 +1,41 @@
+{
+ "_source": "Demo gift card codes (DAT-007, R-31): different face values, one with a short validity. Each is redeemable once per account.",
+ "codes": [
+  {
+   "code": "DEMOGIFT500",
+   "faceValue": 50000,
+   "validityDays": 365,
+   "active": true
+  },
+  {
+   "code": "DEMOGIFT1000",
+   "faceValue": 100000,
+   "validityDays": 365,
+   "active": true
+  },
+  {
+   "code": "DEMOGIFT2000",
+   "faceValue": 200000,
+   "validityDays": 180,
+   "active": true
+  },
+  {
+   "code": "DEMOGIFT5000",
+   "faceValue": 500000,
+   "validityDays": 365,
+   "active": true
+  },
+  {
+   "code": "DEMOSHORT250",
+   "faceValue": 25000,
+   "validityDays": 1,
+   "active": true
+  },
+  {
+   "code": "DEMOINACTIVE",
+   "faceValue": 100000,
+   "validityDays": 365,
+   "active": false
+  }
+ ]
+}

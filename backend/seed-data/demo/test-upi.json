@@ -1,0 +1,21 @@
+{
+ "_source": "Designated demo UPI IDs (DAT-006, PAY-004). Any other valid UPI ID gets a random outcome (SD-46).",
+ "upi": [
+  {
+   "upiId": "success@demo",
+   "forcedOutcome": "success"
+  },
+  {
+   "upiId": "failure@demo",
+   "forcedOutcome": "failure"
+  },
+  {
+   "upiId": "cancel@demo",
+   "forcedOutcome": "cancelled"
+  },
+  {
+   "upiId": "timeout@demo",
+   "forcedOutcome": "timed_out"
+  }
+ ]
+}

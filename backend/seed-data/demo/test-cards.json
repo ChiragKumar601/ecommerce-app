@@ -1,0 +1,140 @@
+{
+ "_source": "Designated demo test cards (DAT-006, T-60): {HDFC credit, HDFC debit, non-HDFC} × {random, success, failure, cancelled, timed out}. Invented Luhn-valid numbers used only by the payment simulator; published on /demo-help.",
+ "cards": [
+  {
+   "number": "4000000100000001",
+   "last4": "0001",
+   "network": "Visa",
+   "issuingBank": "HDFC Bank",
+   "cardType": "credit",
+   "forcedOutcome": null,
+   "label": "HDFC Bank credit (Visa) — Random outcome"
+  },
+  {
+   "number": "4000000110000009",
+   "last4": "0009",
+   "network": "Visa",
+   "issuingBank": "HDFC Bank",
+   "cardType": "credit",
+   "forcedOutcome": "success",
+   "label": "HDFC Bank credit (Visa) — Always succeeds"
+  },
+  {
+   "number": "4000000120000007",
+   "last4": "0007",
+   "network": "Visa",
+   "issuingBank": "HDFC Bank",
+   "cardType": "credit",
+   "forcedOutcome": "failure",
+   "label": "HDFC Bank credit (Visa) — Always fails"
+  },
+  {
+   "number": "4000000130000005",
+   "last4": "0005",
+   "network": "Visa",
+   "issuingBank": "HDFC Bank",
+   "cardType": "credit",
+   "forcedOutcome": "cancelled",
+   "label": "HDFC Bank credit (Visa) — Always cancelled"
+  },
+  {
+   "number": "4000000140000003",
+   "last4": "0003",
+   "network": "Visa",
+   "issuingBank": "HDFC Bank",
+   "cardType": "credit",
+   "forcedOutcome": "timed_out",
+   "label": "HDFC Bank credit (Visa) — Always times out"
+  },
+  {
+   "number": "6080000200000008",
+   "last4": "0008",
+   "network": "RuPay",
+   "issuingBank": "HDFC Bank",
+   "cardType": "debit",
+   "forcedOutcome": null,
+   "label": "HDFC Bank debit (RuPay) — Random outcome"
+  },
+  {
+   "number": "6080000210000006",
+   "last4": "0006",
+   "network": "RuPay",
+   "issuingBank": "HDFC Bank",
+   "cardType": "debit",
+   "forcedOutcome": "success",
+   "label": "HDFC Bank debit (RuPay) — Always succeeds"
+  },
+  {
+   "number": "6080000220000004",
+   "last4": "0004",
+   "network": "RuPay",
+   "issuingBank": "HDFC Bank",
+   "cardType": "debit",
+   "forcedOutcome": "failure",
+   "label": "HDFC Bank debit (RuPay) — Always fails"
+  },
+  {
+   "number": "6080000230000002",
+   "last4": "0002",
+   "network": "RuPay",
+   "issuingBank": "HDFC Bank",
+   "cardType": "debit",
+   "forcedOutcome": "cancelled",
+   "label": "HDFC Bank debit (RuPay) — Always cancelled"
+  },
+  {
+   "number": "6080000240000000",
+   "last4": "0000",
+   "network": "RuPay",
+   "issuingBank": "HDFC Bank",
+   "cardType": "debit",
+   "forcedOutcome": "timed_out",
+   "label": "HDFC Bank debit (RuPay) — Always times out"
+  },
+  {
+   "number": "5100000300000005",
+   "last4": "0005",
+   "network": "Mastercard",
+   "issuingBank": "Demo Bank",
+   "cardType": "credit",
+   "forcedOutcome": null,
+   "label": "Demo Bank credit (Mastercard) — Random outcome"
+  },
+  {
+   "number": "5100000310000003",
+   "last4": "0003",
+   "network": "Mastercard",
+   "issuingBank": "Demo Bank",
+   "cardType": "credit",
+   "forcedOutcome": "success",
+   "label": "Demo Bank credit (Mastercard) — Always succeeds"
+  },
+  {
+   "number": "5100000320000001",
+   "last4": "0001",
+   "network": "Mastercard",
+   "issuingBank": "Demo Bank",
+   "cardType": "credit",
+   "forcedOutcome": "failure",
+   "label": "Demo Bank credit (Mastercard) — Always fails"
+  },
+  {
+   "number": "5100000330000009",
+   "last4": "0009",
+   "network": "Mastercard",
+   "issuingBank": "Demo Bank",
+   "cardType": "credit",
+   "forcedOutcome": "cancelled",
+   "label": "Demo Bank credit (Mastercard) — Always cancelled"
+  },
+  {
+   "number": "5100000340000007",
+   "last4": "0007",
+   "network": "Mastercard",
+   "issuingBank": "Demo Bank",
+   "cardType": "credit",
+   "forcedOutcome": "timed_out",
+   "label": "Demo Bank credit (Mastercard) — Always times out"
+  }
+ ]
+}

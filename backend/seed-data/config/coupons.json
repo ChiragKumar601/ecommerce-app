@@ -1,0 +1,9 @@
+{
+  "_source": "spec.md §5 seed coupons (SD-16); fashion sections = Men, Women, Kids, Gen Z",
+  "coupons": [
+    { "code": "WELCOME10", "description": "10% off your order, up to ₹300", "type": "percent", "value": 10, "maxDiscount": 30000, "minEligibleValue": 99900, "eligibleNodeIds": [], "validFrom": "2026-01-01T00:00:00+05:30", "validTo": "2027-12-31T23:59:59+05:30", "perCustomerLimit": 1, "active": true },
+    { "code": "FLAT200", "description": "Flat ₹200 off fashion on orders of ₹1,499 or more", "type": "flat", "value": 20000, "maxDiscount": null, "minEligibleValue": 149900, "eligibleNodeIds": ["men", "women", "kids", "gen-z"], "validFrom": "2026-01-01T00:00:00+05:30", "validTo": "2027-12-31T23:59:59+05:30", "perCustomerLimit": 2, "active": true },
+    { "code": "BEAUTY15", "description": "15% off beauty, up to ₹250", "type": "percent", "value": 15, "maxDiscount": 25000, "minEligibleValue": 79900, "eligibleNodeIds": ["beauty"], "validFrom": "2026-01-01T00:00:00+05:30", "validTo": "2027-12-31T23:59:59+05:30", "perCustomerLimit": 1, "active": true },
+    { "code": "EXPIRED50", "description": "Expired coupon kept for testing", "type": "percent", "value": 50, "maxDiscount": 50000, "minEligibleValue": 0, "eligibleNodeIds": [], "validFrom": "2025-01-01T00:00:00+05:30", "validTo": "2025-12-31T23:59:59+05:30", "perCustomerLimit": 1, "active": true }
+  ]
+}

@@ -163,3 +163,58 @@ A short chronological record of the important steps, decisions and changes on th
     - `dev:backend`, `dev:worker` and `dev:frontend` run together, with the proxy working end to end.
     - E2E passes on Chromium, Firefox and mobile.
 36. **Latent bug found and fixed.** The compiled backend couldn't load runtime code from `shared/` (`ERR_MODULE_NOT_FOUND`), because `shared/` is TypeScript source with `.js` import specifiers. Nothing called it yet, but Stage 4's request validation would have crashed in production builds. Fix: `shared/` now imports with `.ts` extensions, and the base tsconfig sets `allowImportingTsExtensions`, `rewriteRelativeImportExtensions` and `erasableSyntaxOnly`. Node 24 then runs `shared/` directly, with no build step. A regression test loads `@app/shared` on plain Node.
+
+## 2026-10-06 — Stage 3: Database, config and catalogue seed (in progress)
+
+37. **Built and tested (not yet committed):**
+    - **Migration M1–M3:** config, content, reference, catalogue and reviews tables, plus hand-written CHECK constraints (stock never negative or over-held, price ≤ MRP, rating 1–5). The tests show the database rejects violations.
+    - **Catalogue tree:** 6 sections, 68 categories, 386 subcategories from the README and T-6, with a validator.
+    - **Config:** spec §5 settings, coupons, HDFC offer, tax rates, return policy, delivery zones.
+    - **Reference data:** 36 states/UTs; **201 real pincodes covering every state and UT, each verified against India Post data** via api.postalpincode.in, because data.gov.in's API was unreachable; 8 security questions; blocked words.
+    - **Demo data:** 15 Luhn-valid test cards (3 bank/type groups × 5 outcomes), 4 test UPI IDs, 6 gift card codes.
+    - **Content:** 6 hero slides (one to Best Seller Styles), 30 Shop by Category cards, popular searches, footer, 8 placeholder pages (privacy states the 30-day purge), 16 FAQs.
+    - **Deterministic product generator:** fictional brands, product families, size systems, colour siblings, out-of-stock items, mirror rules for cross-section listings, curated recommendations.
+    - **Reviews:** about 50k seeded reviews, with aggregates computed from the rows.
+    - **Image assignment:** OD-6 guardrails, unit-tested.
+    - **Image fetch script:** resumable and rate-limit-aware (418 queries).
+    - **Scripts:** `db:seed`, `config:sync` and `seed:verify`.
+38. **Results:**
+    - The seed loads 2,930 products, 8,568 variants and 50,057 reviews in about 21 s, and `seed:verify` passes.
+    - Tests: backend 111, shared 26, frontend 2. Lint and typecheck pass.
+    - Bugs fixed along the way: Prisma 7 needs `prisma generate` after migrate (added to `db:migrate`); some families pointed at size guides that didn't exist.
+39. **Waiting on the owner:**
+    - **(a) A D-44 conflict.** With 68 categories each needing ≥ 48 products, the floor is about 2,830 products even with reasonable cross-listing, so "about 1,800–2,500" can't be met together with the minimums. The current output is 2,930.
+    - **(b) The Pexels API key** for S3.7 (images).
+40. **Images without a key (OD-11).** Pexels has paused new API keys, so the owner chose **Openverse + Wikimedia Commons**. Findings:
+    - Openverse allows only 200 anonymous requests a day and returned weak matches (a *map* for "kurta").
+    - Wikimedia Commons is therefore primary, with Openverse as a small top-up.
+    - Only licences allowing commercial use and modification are kept (CC0, public domain, CC BY, CC BY-SA). Off-topic titles (maps, logos, museum pieces, portraits) and real-brand titles (Adidas, Dior, Yeezy…) are filtered out.
+    - Each photo is downloaded once and resized to a ~900 px WebP (`sharp`; format change only) in `backend/storage/catalogue`, served by the backend at `/media/catalogue` with immutable caching and proxied by Vite.
+    - The manifest stores author, licence, source page and download URL per image, so a fresh clone can rebuild the files.
+    - **Reuse rule relaxed per the owner** ("reuse if needed, avoid if you can"): primaries stay unique or shared by at most 2 where the pool allows; smaller pools reuse more, but never put the same primary side by side. Over-reuse is now a warning, not an error.
+    - Plan updated (OD-11; A-4 superseded; S3.7 and S12.6 credits).
+41. **Catalogue size (OD-12).** The owner said images are only for appearance and the UI is the focus, without choosing between the D-44 options. Applied the recommended option: **keep the ≥ 6 / ≥ 48 minimums, ~2,930 products**. Recorded as a team call the owner can override.
+42. **Fetch performance:** one download at a time took about 22 s per query (~2.5 h). Downloading 4 in parallel per query brings it to about 9 s per query. The fetch resumed from its manifest without refetching.
+43. **Owner: use existing images, reuse allowed, at least 150 distinct (OD-13).** The full fetch was stopped. The 395 images fetched so far were all from Men, so a quick category-level batch was added for the other sections.
+44. **Bug: two fetch processes overwrote each other's manifest.** Stopping by name had only killed the `npx` wrapper. Fixed by stopping by exact PID and adding a **lock file** to the fetch script (a second run is refused; tested).
+45. **Spot-check found many irrelevant images** from the broad category/section searches: a lightning storm for a ceiling light, a Ferris wheel for decorative lights, a jockey for slippers, a building for shaving products, a military jacket for diapers, plus photos of identifiable real people (concert, celebrity), which a CC licence doesn't cover for shop use.
+46. **Owner chose: relevance filter + fetch the rest.**
+    - A photo is used only if its title names the product type (head noun plus synonyms), and event titles are blocked; this applies to fallback photos too. Tested with every bad example from the spot-check.
+    - Products with no relevant photo get an on-theme section placeholder SVG, served at `/media/placeholder`.
+    - Hero slides and cards have their own relevance keywords.
+    - The fetch counts only relevant photos and asks Wikimedia for 50 candidates per search.
+    - The verifier counts only real photos towards the ≥ 150 minimum, and placeholder products are exempt from the 2–4 images rule.
+47. **Owner: "reuse images if needed, it doesn't matter if they match — finish it" (OD-14).**
+    - The relevance-filtered fetch was stopped. The lock file was released cleanly, and 1,531 photos were kept, with no missing files.
+    - Assignment now prefers relevant photos, then the product's own and fallback searches, then any photo. Event photos are always excluded (real people's image rights). The placeholder is used only if the manifest is empty.
+    - Result: **every product has real photos, 887 distinct images (≥ 150, OD-13), 0 placeholders.** The seed takes about 12 s and `seed:verify` passes.
+48. **Test fix:** this session forces coloured output, so the shared-runtime test's child process printed `42` with colour codes. The test now prints plain strings and no longer depends on the terminal.
+
+## 2026-10-07 — Stage 3 complete
+
+49. **Stage 3 verified and committed:**
+    - lint and typecheck pass; shared 26, backend 121, frontend 2; E2E 3/3.
+    - `db:seed`: 2,930 products, 8,568 variants, 50,057 reviews, 8,906 product images (887 distinct), 1,000+ licensed images credited by author and licence.
+    - `seed:verify` passes; the only warning is the total being above "about 2,500" (OD-12).
+    - Committed: the manifest of attribution metadata, placeholders and seed sources. Image files are gitignored and rebuilt by `pnpm images:fetch`, which restores missing files from the manifest.
+    - Pushed to `main`.

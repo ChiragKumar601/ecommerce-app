@@ -1,0 +1,109 @@
+{
+  "_source": "Landing hero carousel (LND-002, LND-003, R-34, DAT-004). At most 8 active; one links to Best Seller Styles. imageQuery is resolved to a licensed Pexels image by S3.7.",
+  "slides": [
+    {
+      "id": "festive",
+      "headline": "The Festive Edit",
+      "subheadline": "Kurtas, sarees and sherwanis for every celebration",
+      "ctaLabel": "Shop ethnic wear",
+      "href": "/shop/all?nodes=women/indian-wear,men/traditional-wear",
+      "imageQuery": "indian festive fashion",
+      "order": 1,
+      "active": true,
+      "imageKeywords": [
+        "kurta",
+        "saree",
+        "sari",
+        "lehenga",
+        "sherwani",
+        "ethnic",
+        "festive"
+      ]
+    },
+    {
+      "id": "best-sellers",
+      "headline": "Best Seller Styles",
+      "subheadline": "The pieces everyone is adding to their bag",
+      "ctaLabel": "Shop best sellers",
+      "href": "/collections/best-seller-styles",
+      "imageQuery": "fashion model street style",
+      "order": 2,
+      "active": true,
+      "imageKeywords": [
+        "fashion",
+        "model",
+        "outfit",
+        "style"
+      ]
+    },
+    {
+      "id": "genz",
+      "headline": "Gen Z Drops",
+      "subheadline": "Oversized fits, Y2K and streetwear",
+      "ctaLabel": "Explore Gen Z",
+      "href": "/shop/gen-z",
+      "imageQuery": "streetwear fashion",
+      "order": 3,
+      "active": true,
+      "imageKeywords": [
+        "streetwear",
+        "street style",
+        "hoodie",
+        "sneaker",
+        "fashion"
+      ]
+    },
+    {
+      "id": "beauty",
+      "headline": "Beauty Must-Haves",
+      "subheadline": "Skincare and makeup from ₹149",
+      "ctaLabel": "Shop beauty",
+      "href": "/shop/beauty",
+      "imageQuery": "beauty products",
+      "order": 4,
+      "active": true,
+      "imageKeywords": [
+        "cosmetics",
+        "makeup",
+        "skincare",
+        "lipstick",
+        "beauty"
+      ]
+    },
+    {
+      "id": "home",
+      "headline": "Refresh Your Space",
+      "subheadline": "Decor, furnishings and lighting",
+      "ctaLabel": "Shop home",
+      "href": "/shop/home",
+      "imageQuery": "modern living room interior",
+      "order": 5,
+      "active": true,
+      "imageKeywords": [
+        "living room",
+        "interior",
+        "sofa",
+        "bedroom",
+        "home"
+      ]
+    },
+    {
+      "id": "kids",
+      "headline": "Little Wardrobe, Big Smiles",
+      "subheadline": "Everyday kidswear, footwear and toys",
+      "ctaLabel": "Shop kids",
+      "href": "/shop/kids",
+      "imageQuery": "kids fashion",
+      "order": 6,
+      "active": true,
+      "imageKeywords": [
+        "kids",
+        "children",
+        "child",
+        "boy",
+        "girl",
+        "baby"
+      ]
+    }
+  ]
+}

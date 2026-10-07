@@ -18,3 +18,7 @@ backend/src/generated/
 frontend/playwright-report/
 frontend/test-results/
 .lighthouseci/
+
+backend/storage/catalogue/*
+!backend/storage/catalogue/.gitkeep
+backend/seed-data/images/.fetch.lock

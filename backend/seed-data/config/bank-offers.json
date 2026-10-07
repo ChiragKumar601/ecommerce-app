@@ -1,0 +1,18 @@
+{
+  "_source": "spec.md §5 bankOffer.HDFC (R-07, SD-15)",
+  "offers": [
+    {
+      "id": "hdfc",
+      "bankName": "HDFC Bank",
+      "cardTypes": ["credit", "debit"],
+      "percent": 10,
+      "maxDiscount": 100000,
+      "minEligibleValue": 250000,
+      "validFrom": "2026-01-01T00:00:00+05:30",
+      "validTo": "2027-12-31T23:59:59+05:30",
+      "summary": "10% instant discount on HDFC Bank credit and debit cards, up to ₹1,000",
+      "termsText": "Demo offer. 10% instant discount, up to ₹1,000, on the value of eligible items when the amount payable is paid with an HDFC Bank credit or debit card. Applies when eligible items total ₹2,500 or more after any coupon. Not applicable when credits or a gift card cover the full amount. One discount per order. Valid until 31 Dec 2027.",
+      "active": true
+    }
+  ]
+}

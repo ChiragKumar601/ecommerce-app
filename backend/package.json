@@ -12,19 +12,24 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
+    "db:migrate": "prisma migrate dev && prisma generate",
     "db:deploy": "prisma migrate deploy",
-    "db:reset": "prisma migrate reset --force",
-    "db:seed": "echo \"Seeding arrives in Stage 3 (S3.13)\"",
+    "db:reset": "prisma migrate reset --force && prisma generate",
+    "db:seed": "tsx --env-file-if-exists=.env src/scripts/seed.ts",
     "postinstall": "prisma generate",
     "pretest": "prisma generate",
-    "pretypecheck": "prisma generate"
+    "pretypecheck": "prisma generate",
+    "images:fetch": "tsx --env-file-if-exists=.env src/scripts/fetch-images.ts",
+    "catalogue:generate": "tsx src/scripts/catalogue-stats.ts",
+    "config:sync": "tsx --env-file-if-exists=.env src/scripts/config-sync.ts",
+    "seed:verify": "tsx --env-file-if-exists=.env src/scripts/verify-seed.ts"
   },
   "dependencies": {
     "@app/shared": "workspace:*",
     "@prisma/adapter-libsql": "7.10.0",
     "@prisma/client": "7.10.0",
     "express": "^5.2.1",
+    "sharp": "^0.35.5",
     "zod": "^4.6.5"
   },
   "devDependencies": {

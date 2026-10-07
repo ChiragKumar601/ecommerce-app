@@ -29,6 +29,10 @@
 | OD-8 | Local first; deployment later | Stage 23 is a separate phase |
 | OD-9 | **Exceptional, uniform, responsive UI**: one theme and one component set across all routes | §8.5 design system, S4.3, a design check on every UI step |
 | OD-10 | **Push each stage directly to `main`** after it is verified (no stage branches) | §9 rules |
+| OD-11 | **Pexels keys unavailable → images from Wikimedia Commons (primary) and Openverse (top-up), no key.** Only licences allowing commercial use and modification (CC0, public domain, CC BY, CC BY-SA); author, licence and source stored per image and credited on `/demo-help`. Images are downloaded once and resized to ~900 px WebP, served by the backend at `/media`. Image reuse is allowed when a pool is too small, but avoided where possible. | S3.7, S3.10, S12.6 |
+| OD-13 | **At least 150 distinct product images; reuse allowed** (owner, after Pexels became unavailable). Checked by `seed:verify`. | S3.10, S3.13 |
+| OD-14 | **Finish with the images already fetched:** assignment prefers photos whose title names the product type, then other photos from the product's own and fallback searches, then any photo; event photos (concerts, awards…) are never used. No placeholders needed (887 distinct images on 2,930 products). | S3.10 |
+| OD-12 | **Catalogue size:** keep the D-44 minimums (≥ 6 per subcategory, ≥ 48 per category); the total is ~2,930, above "about 2,500", because 68 categories × 48 can't fit in 2,500 (team call after the owner said the UI matters more than the catalogue; owner may override) | S3.9 |
 
 ## 3. Tech stack
 
@@ -50,13 +54,12 @@
 | Password hashing | Argon2id (`@node-rs/argon2`, prebuilt binary) | `backend/` | AUTH-007 |
 | Images (uploads) | sharp (prebuilt binary) | `backend/` | Content-type sniffing, EXIF stripping (SEC-005) |
 | PDF | pdf-lib + `@pdf-lib/fontkit` + Noto Sans font | `backend/` | Invoice PDF with ₹ (INV-I-003) |
-| Product images | Pexels API (fetch script, run once) + Pexels CDN | `backend/` | D-22 (needs a free key) |
+| Product images | Wikimedia Commons + Openverse (fetch script, no key), resized to WebP with sharp, served from `/media` | `backend/` | D-22, OD-11 |
 | Validation (shared) | zod | `shared/` | §12 schemas used on both sides |
 | Tests | Vitest (backend, shared, frontend units) + React Testing Library; Playwright (E2E); @axe-core/playwright; Lighthouse CI | per folder | §11 |
 | Quality | ESLint, Prettier, GitHub Actions CI | root | |
 
 **Things only the owner can provide:**
-- before Stage 3: a free **Pexels API key**
 - before Stage 13: a free **Mapbox token**
 - deployment accounts later (Stage 23 only)
 
@@ -417,7 +420,7 @@ S0 → S1 → S2 → S3 → S4 → S5 → S6 → S7 → S8 → S9 → S10 → S1
 | S3.4 [B] | **Commercial config**: `settings` (§5), coupons, the bank offer, tax rates, return policy, delivery zones | §5, DAT-005, R-17, R-25 |
 | S3.5 [B] | **Reference data**: states and UTs; **≥ 200 serviceable pincodes taken from the India Post pincode directory on data.gov.in** (Government Open Data Licence – India; the source is recorded), at least one major city per state, assigned to zones; ≥ 6 security questions; blocked words | DAT-005, DAT-009, PR-13 |
 | S3.6 [B] | **Demo and test data**: test cards (Luhn-valid; HDFC credit / HDFC debit / non-HDFC × random, success, failure, cancelled, timed out), test UPI IDs, ≥ 5 gift card codes (one with a short validity) | DAT-006, DAT-007 |
-| S3.7 [B] | `scripts/fetch-images.ts`: queries Pexels per subcategory (falling back to the parent category), writes `seed-data/images/manifest.json` with URL, photographer, Pexels page URL and licence | D-22 |
+| S3.7 [B] | `scripts/fetch-images.ts`: searches Wikimedia Commons (then Openverse) per subcategory, falling back to the category and section; keeps only commercial-use licences; filters off-topic and real-brand results; downloads and resizes to WebP in `storage/catalogue`; writes `seed-data/images/manifest.json` with author, licence, source page and download URL (OD-11) | D-22, OD-11 |
 | S3.8 [B] | Generator, part 1: brand pool (fictional), per-subcategory templates (name parts, subtitles, size systems, price bands, specification templates, gender, colours) | DAT-002, D-28, SD-04 |
 | S3.9 [B] | Generator, part 2: products and variants, at **≥ 6 per subcategory, ≥ 48 per category, about 1,800–2,500 in total**; flags (bestSeller, bankOfferEligible, inclusiveSizing); listing dates; stock including deliberate out-of-stock variants | DAT-002, D-44, T-44, R-33 |
 | S3.10 [B] | Generator, part 3: **image assignment with repetition guardrails (OD-6)**: 2–4 images per product; a primary image is shared by at most 2 products in a subcategory; products sharing a primary image never sit next to each other in the default (Recommended) order; and they differ in colour, name and gallery order. Plus curated recommendations (bought together, complete the look). | D-22, OD-6, PDP-011 |
@@ -521,7 +524,7 @@ S0 → S1 → S2 → S3 → S4 → S5 → S6 → S7 → S8 → S9 → S10 → S1
 | S12.3 [B] | Saved cards: test-card check, masked storage only, default rules | PRF-005, SEC-003, SD-10 |
 | S12.4 [B] | Support requests (types, own orders only, request number) | PRF-006, T-37 |
 | S12.5 [F] | Account home, Edit Profile, Credits, Gift Cards, Saved Cards, Contact Us pages; unseen-orders dot (fed later by S16) | PRF-001…006, PRF-007 (UI) |
-| S12.6 [F] | `/demo-help`: test cards, UPI IDs, gift codes, return tags, **plus the Pexels image credit and photographer credits (OD-7)** | DAT-006, DAT-007, RET-006, D-22 |
+| S12.6 [F] | `/demo-help`: test cards, UPI IDs, gift codes, return tags, **plus image credits: author, licence and source link for every image (OD-7, OD-11)** | DAT-006, DAT-007, RET-006, D-22 |
 | **Verify** | Ownership tests: every `/me/*` route returns `NOT_FOUND` for other accounts' ids; E2E profile flows | |
 
 ### Stage 13 — Addresses and map (Mapbox token before this stage)

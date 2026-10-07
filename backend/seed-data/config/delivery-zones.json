@@ -1,0 +1,1 @@
+{ "_source": "spec.md §5 delivery.zones (SD-18)", "zones": [ { "zone": "A", "deliveryDays": 2 }, { "zone": "B", "deliveryDays": 4 }, { "zone": "C", "deliveryDays": 6 } ] }

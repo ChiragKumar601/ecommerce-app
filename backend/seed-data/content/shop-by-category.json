@@ -1,0 +1,436 @@
+{
+  "_source": "Shop by Category cards from intent §6.2 with T-6 merges (Office Wear + Workwear → Office Wear; Inclusive Styles → Size-Inclusive Styles). Cross-section cards use /shop/all with node or flag filters (R-33). Data-driven: add, reorder or edit cards here (LND-005).",
+  "cards": [
+    {
+      "id": "ethnic-wear",
+      "name": "Ethnic Wear",
+      "discountText": "50–80% OFF",
+      "href": "/shop/all?nodes=women/indian-wear,men/traditional-wear",
+      "imageQuery": "indian ethnic wear",
+      "order": 1,
+      "imageKeywords": [
+        "kurta",
+        "saree",
+        "sari",
+        "lehenga",
+        "ethnic"
+      ]
+    },
+    {
+      "id": "casual-wear",
+      "name": "Casual Wear",
+      "discountText": "40–70% OFF",
+      "href": "/shop/all?nodes=men/topwear,women/western-wear",
+      "imageQuery": "casual outfit fashion",
+      "order": 2,
+      "imageKeywords": [
+        "shirt",
+        "t shirt",
+        "jeans",
+        "outfit",
+        "casual"
+      ]
+    },
+    {
+      "id": "mens-activewear",
+      "name": "Men's Activewear",
+      "discountText": "30–60% OFF",
+      "href": "/men/activewear",
+      "imageQuery": "men gym clothes",
+      "order": 3,
+      "imageKeywords": [
+        "sportswear",
+        "gym",
+        "running",
+        "tracksuit",
+        "athlete",
+        "jersey"
+      ]
+    },
+    {
+      "id": "womens-activewear",
+      "name": "Women's Activewear",
+      "discountText": "30–60% OFF",
+      "href": "/women/activewear",
+      "imageQuery": "women yoga wear",
+      "order": 4,
+      "imageKeywords": [
+        "yoga",
+        "gym",
+        "sportswear",
+        "leggings",
+        "running"
+      ]
+    },
+    {
+      "id": "western-wear",
+      "name": "Western Wear",
+      "discountText": "40–80% OFF",
+      "href": "/women/western-wear",
+      "imageQuery": "women western fashion",
+      "order": 5,
+      "imageKeywords": [
+        "dress",
+        "skirt",
+        "top",
+        "jeans",
+        "blouse"
+      ]
+    },
+    {
+      "id": "sportswear",
+      "name": "Sportswear",
+      "discountText": "30–70% OFF",
+      "href": "/shop/all?nodes=men/activewear,women/activewear,men/footwear/sports-shoes,women/footwear/sports-shoes",
+      "imageQuery": "sportswear running",
+      "order": 6,
+      "imageKeywords": [
+        "sportswear",
+        "running",
+        "tracksuit",
+        "jersey",
+        "sneaker"
+      ]
+    },
+    {
+      "id": "loungewear",
+      "name": "Loungewear",
+      "discountText": "UP TO 60% OFF",
+      "href": "/shop/all?nodes=men/sleepwear,women/sleepwear",
+      "imageQuery": "loungewear pajamas",
+      "order": 7,
+      "imageKeywords": [
+        "pajama",
+        "pyjama",
+        "lounge",
+        "sleepwear",
+        "robe"
+      ]
+    },
+    {
+      "id": "innerwear",
+      "name": "Innerwear",
+      "discountText": "UP TO 50% OFF",
+      "href": "/men/innerwear",
+      "imageQuery": "men innerwear",
+      "order": 8,
+      "imageKeywords": [
+        "underwear",
+        "boxer",
+        "briefs",
+        "vest"
+      ]
+    },
+    {
+      "id": "lingerie",
+      "name": "Lingerie",
+      "discountText": "UP TO 50% OFF",
+      "href": "/women/lingerie",
+      "imageQuery": "lingerie",
+      "order": 9,
+      "imageKeywords": [
+        "lingerie",
+        "bra"
+      ]
+    },
+    {
+      "id": "watches",
+      "name": "Watches",
+      "discountText": "UP TO 60% OFF",
+      "href": "/shop/all?nodes=men/watches,women/watches",
+      "imageQuery": "wrist watch",
+      "order": 10,
+      "imageKeywords": [
+        "watch",
+        "wristwatch"
+      ]
+    },
+    {
+      "id": "grooming",
+      "name": "Grooming",
+      "discountText": "UP TO 40% OFF",
+      "href": "/beauty/grooming",
+      "imageQuery": "men grooming",
+      "order": 11,
+      "imageKeywords": [
+        "shaving",
+        "beard",
+        "razor",
+        "grooming",
+        "barber"
+      ]
+    },
+    {
+      "id": "beauty-makeup",
+      "name": "Beauty & Makeup",
+      "discountText": "UP TO 45% OFF",
+      "href": "/beauty/makeup",
+      "imageQuery": "makeup products",
+      "order": 12,
+      "imageKeywords": [
+        "makeup",
+        "cosmetics",
+        "lipstick"
+      ]
+    },
+    {
+      "id": "kids-wear",
+      "name": "Kids Wear",
+      "discountText": "40–60% OFF",
+      "href": "/shop/kids",
+      "imageQuery": "kids clothing",
+      "order": 13,
+      "imageKeywords": [
+        "kids",
+        "children",
+        "child",
+        "boy",
+        "girl",
+        "baby"
+      ]
+    },
+    {
+      "id": "mens-footwear",
+      "name": "Men's Footwear",
+      "discountText": "30–55% OFF",
+      "href": "/men/footwear",
+      "imageQuery": "men shoes",
+      "order": 14,
+      "imageKeywords": [
+        "shoe",
+        "sneaker",
+        "boot",
+        "loafer"
+      ]
+    },
+    {
+      "id": "womens-footwear",
+      "name": "Women's Footwear",
+      "discountText": "30–55% OFF",
+      "href": "/women/footwear",
+      "imageQuery": "women heels sandals",
+      "order": 15,
+      "imageKeywords": [
+        "heel",
+        "sandal",
+        "shoe",
+        "boot"
+      ]
+    },
+    {
+      "id": "bags",
+      "name": "Bags",
+      "discountText": "40–60% OFF",
+      "href": "/shop/all?nodes=women/handbags,gen-z/bags",
+      "imageQuery": "handbag",
+      "order": 16,
+      "imageKeywords": [
+        "bag",
+        "handbag",
+        "backpack",
+        "purse"
+      ]
+    },
+    {
+      "id": "belts-wallets",
+      "name": "Belts & Wallets",
+      "discountText": "UP TO 60% OFF",
+      "href": "/shop/all?nodes=women/accessories/belts,women/handbags/wallets",
+      "imageQuery": "leather belt wallet",
+      "order": 17,
+      "imageKeywords": [
+        "belt",
+        "wallet"
+      ]
+    },
+    {
+      "id": "office-wear",
+      "name": "Office Wear",
+      "discountText": "30–60% OFF",
+      "href": "/shop/all?nodes=men/topwear/formal-shirts,men/topwear/blazers,men/bottomwear/trousers,women/western-wear/shirts,women/western-wear/trousers",
+      "imageQuery": "office wear business attire",
+      "order": 18,
+      "imageKeywords": [
+        "suit",
+        "blazer",
+        "office",
+        "business",
+        "shirt"
+      ]
+    },
+    {
+      "id": "mens-ethnic-wear",
+      "name": "Men's Ethnic Wear",
+      "discountText": "40–70% OFF",
+      "href": "/men/traditional-wear",
+      "imageQuery": "men kurta",
+      "order": 19,
+      "imageKeywords": [
+        "kurta",
+        "sherwani",
+        "dhoti",
+        "ethnic"
+      ]
+    },
+    {
+      "id": "home-decor",
+      "name": "Home Decor",
+      "discountText": "UP TO 65% OFF",
+      "href": "/home/home-decor",
+      "imageQuery": "home decor",
+      "order": 20,
+      "imageKeywords": [
+        "vase",
+        "decor",
+        "lamp",
+        "cushion",
+        "interior"
+      ]
+    },
+    {
+      "id": "handbags",
+      "name": "Handbags",
+      "discountText": "40–60% OFF",
+      "href": "/women/handbags",
+      "imageQuery": "women handbag",
+      "order": 21,
+      "imageKeywords": [
+        "handbag",
+        "purse",
+        "bag",
+        "tote"
+      ]
+    },
+    {
+      "id": "headphones-speakers",
+      "name": "Headphones & Speakers",
+      "discountText": "UP TO 65% OFF",
+      "href": "/gen-z/gadgets/headphones-and-speakers",
+      "imageQuery": "headphones",
+      "order": 22,
+      "imageKeywords": [
+        "headphone",
+        "earphone",
+        "speaker",
+        "headset"
+      ]
+    },
+    {
+      "id": "jewellery",
+      "name": "Jewellery",
+      "discountText": "50–70% OFF",
+      "href": "/women/jewellery",
+      "imageQuery": "jewellery earrings necklace",
+      "order": 23,
+      "imageKeywords": [
+        "jewellery",
+        "jewelry",
+        "earring",
+        "necklace",
+        "bracelet"
+      ]
+    },
+    {
+      "id": "size-inclusive",
+      "name": "Size-Inclusive Styles",
+      "discountText": "30–60% OFF",
+      "href": "/shop/all?inclusiveSizing=1",
+      "imageQuery": "plus size fashion",
+      "order": 24,
+      "imageKeywords": [
+        "plus size",
+        "fashion",
+        "dress",
+        "outfit",
+        "model"
+      ]
+    },
+    {
+      "id": "watches-wearables",
+      "name": "Watches & Wearables",
+      "discountText": "UP TO 60% OFF",
+      "href": "/gen-z/gadgets/watches-and-wearables",
+      "imageQuery": "smartwatch",
+      "order": 25,
+      "imageKeywords": [
+        "smartwatch",
+        "smart watch",
+        "watch",
+        "wearable"
+      ]
+    },
+    {
+      "id": "sleepwear",
+      "name": "Sleepwear",
+      "discountText": "UP TO 55% OFF",
+      "href": "/shop/all?nodes=men/sleepwear,women/sleepwear,kids/boys-clothing/nightwear,kids/girls-clothing/nightwear",
+      "imageQuery": "sleepwear",
+      "order": 26,
+      "imageKeywords": [
+        "pajama",
+        "pyjama",
+        "sleepwear",
+        "nightwear"
+      ]
+    },
+    {
+      "id": "eyewear",
+      "name": "Eyewear",
+      "discountText": "UP TO 65% OFF",
+      "href": "/shop/all?nodes=men/sunglasses,women/sunglasses",
+      "imageQuery": "sunglasses fashion",
+      "order": 27,
+      "imageKeywords": [
+        "sunglasses",
+        "glasses",
+        "eyewear"
+      ]
+    },
+    {
+      "id": "kitchen-dining",
+      "name": "Kitchen & Dining",
+      "discountText": "UP TO 55% OFF",
+      "href": "/home/kitchen-and-dining",
+      "imageQuery": "kitchen dining tableware",
+      "order": 28,
+      "imageKeywords": [
+        "kitchen",
+        "plate",
+        "cookware",
+        "dinner",
+        "bowl",
+        "cup"
+      ]
+    },
+    {
+      "id": "toys",
+      "name": "Toys",
+      "discountText": "UP TO 50% OFF",
+      "href": "/kids/toys",
+      "imageQuery": "kids toys",
+      "order": 29,
+      "imageKeywords": [
+        "toy",
+        "teddy",
+        "doll",
+        "lego",
+        "puzzle"
+      ]
+    },
+    {
+      "id": "skincare",
+      "name": "Skincare",
+      "discountText": "UP TO 45% OFF",
+      "href": "/beauty/skincare",
+      "imageQuery": "skincare products",
+      "order": 30,
+      "imageKeywords": [
+        "skincare",
+        "serum",
+        "cream",
+        "lotion",
+        "moisturizer"
+      ]
+    }
+  ]
+}

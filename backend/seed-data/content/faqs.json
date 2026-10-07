@@ -1,0 +1,21 @@
+{
+  "_source": "FAQs for Contact Us (PRF-006, DAT-008: at least 15 across 5 topics)",
+  "faqs": [
+    { "topic": "Orders", "question": "How do I track my order?", "answer": "Go to Profile › Orders and open the order. The timeline shows every step, and tracking details appear once the order ships." },
+    { "topic": "Orders", "question": "Can I cancel my order?", "answer": "You can cancel items while the order is Placed, Confirmed or Packed. Once it ships, cancellation isn't available, but you can return eligible items after delivery." },
+    { "topic": "Orders", "question": "What is the delivery OTP?", "answer": "Every order has a 4-digit OTP in its order details from Out for Delivery. Share it with the delivery person to receive your order." },
+    { "topic": "Orders", "question": "My payment failed. Was I charged?", "answer": "No money is taken when a payment fails, is cancelled or times out. You can retry from the order for 15 minutes without rebuilding your bag." },
+    { "topic": "Payments", "question": "Which payment methods can I use?", "answer": "Card, UPI, gift card, credits and cash on delivery. Credits and one gift card can be combined with one other method." },
+    { "topic": "Payments", "question": "How does the HDFC Bank offer work?", "answer": "Pay with an HDFC Bank credit or debit card to get 10% off eligible items, up to ₹1,000, when eligible items total ₹2,500 or more." },
+    { "topic": "Payments", "question": "Can I use real card details?", "answer": "No. This is a demo store — use the test cards listed on the Demo help page. Real cards are not accepted." },
+    { "topic": "Returns & Refunds", "question": "How do I return an item?", "answer": "Open the order, choose the item and select Return. Pick a reason and confirm. You'll see the return status and pickup details." },
+    { "topic": "Returns & Refunds", "question": "Which items can't be returned?", "answer": "Innerwear, lingerie, beauty and personal care, and baby care items. The product page shows whether an item is returnable." },
+    { "topic": "Returns & Refunds", "question": "Where will my refund go?", "answer": "Back to the original payment method — card or UPI first, then gift card, then credits. Cash on delivery refunds are paid as credits." },
+    { "topic": "Account", "question": "I forgot my password. What do I do?", "answer": "Use Forgot password. Enter your email or phone, choose your security question and answer it, then set a new password." },
+    { "topic": "Account", "question": "How do I delete my account?", "answer": "Raise an Account deletion request from Contact Us. Accounts inactive for 30 days are also deleted automatically." },
+    { "topic": "Account", "question": "Why was my account locked?", "answer": "After 5 incorrect attempts, sign-in is paused for 15 minutes to protect your account. Try again after that." },
+    { "topic": "Shopping", "question": "Is delivery free?", "answer": "Yes, when your bag value after discounts and coupon is above ₹1,999. Otherwise a ₹99 delivery charge applies." },
+    { "topic": "Shopping", "question": "How do I find my size?", "answer": "Open the size guide on the product page for measurements. If you're between sizes, the guide suggests which to pick." },
+    { "topic": "Shopping", "question": "What are credits and gift cards?", "answer": "Credits are shopping balance in your account — new accounts get ₹500. Gift cards are redeemed by code in Profile › Gift Cards and used at payment." }
+  ]
+}

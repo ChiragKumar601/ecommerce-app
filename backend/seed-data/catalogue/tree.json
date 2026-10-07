@@ -1,0 +1,761 @@
+{
+ "version": 1,
+ "sections": [
+  {
+   "name": "Men",
+   "categories": [
+    {
+     "name": "Topwear",
+     "subcategories": [
+      "T-Shirts",
+      "Casual Shirts",
+      "Formal Shirts",
+      "Polo Shirts",
+      "Hoodies",
+      "Sweatshirts",
+      "Jackets",
+      "Rain Jackets",
+      "Blazers",
+      "Coats",
+      "Tank Tops"
+     ]
+    },
+    {
+     "name": "Bottomwear",
+     "subcategories": [
+      "Jeans",
+      "Trousers",
+      "Chinos",
+      "Shorts",
+      "Joggers",
+      "Track Pants",
+      "Cargos"
+     ]
+    },
+    {
+     "name": "Footwear",
+     "subcategories": [
+      "Sneakers",
+      "Casual Shoes",
+      "Formal Shoes",
+      "Sports Shoes",
+      "Sandals",
+      "Slippers",
+      "Boots",
+      "Loafers"
+     ]
+    },
+    {
+     "name": "Traditional Wear",
+     "subcategories": [
+      "Kurtas",
+      "Kurta Sets",
+      "Sherwanis",
+      "Nehru Jackets",
+      "Dhotis",
+      "Ethnic Jackets"
+     ]
+    },
+    {
+     "name": "Activewear",
+     "subcategories": [
+      "Sports T-Shirts",
+      "Track Jackets",
+      "Gym Shorts",
+      "Compression Wear"
+     ]
+    },
+    {
+     "name": "Personal Care",
+     "subcategories": [
+      "Skincare",
+      "Haircare",
+      "Grooming",
+      "Shaving",
+      "Beard Care",
+      "Deodorants",
+      "Fragrances"
+     ]
+    },
+    {
+     "name": "Sunglasses",
+     "subcategories": [
+      "Aviators",
+      "Wayfarers",
+      "Round Sunglasses",
+      "Sports Sunglasses",
+      "Rectangular Sunglasses"
+     ]
+    },
+    {
+     "name": "Watches",
+     "subcategories": [
+      "Analog Watches",
+      "Digital Watches",
+      "Chronograph Watches",
+      "Smart Watches"
+     ]
+    },
+    {
+     "name": "Innerwear",
+     "subcategories": [
+      "Briefs",
+      "Boxers",
+      "Trunks",
+      "Vests",
+      "Thermals"
+     ]
+    },
+    {
+     "name": "Sleepwear",
+     "subcategories": [
+      "Night Suits",
+      "Pyjamas",
+      "Lounge Pants",
+      "Robes"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Women",
+   "categories": [
+    {
+     "name": "Indian Wear",
+     "subcategories": [
+      "Kurtas",
+      "Kurta Sets",
+      "Sarees",
+      "Lehengas",
+      "Salwar Suits",
+      "Ethnic Dresses",
+      "Dupattas",
+      "Blouses",
+      "Palazzos"
+     ]
+    },
+    {
+     "name": "Western Wear",
+     "subcategories": [
+      "Tops",
+      "T-Shirts",
+      "Shirts",
+      "Blouses",
+      "Sweaters",
+      "Hoodies",
+      "Jackets",
+      "Coats",
+      "Jeans",
+      "Trousers",
+      "Skirts",
+      "Shorts",
+      "Leggings",
+      "Joggers",
+      "Jumpsuits",
+      "Co-ord Sets"
+     ]
+    },
+    {
+     "name": "Topwear",
+     "subcategories": [
+      "Tops",
+      "T-Shirts",
+      "Shirts",
+      "Sweaters & Sweatshirts",
+      "Jackets & Coats"
+     ]
+    },
+    {
+     "name": "Bottomwear",
+     "subcategories": [
+      "Jeans",
+      "Trousers",
+      "Skirts",
+      "Shorts",
+      "Leggings",
+      "Joggers"
+     ]
+    },
+    {
+     "name": "Dresses",
+     "subcategories": [
+      "Maxi Dresses",
+      "Midi Dresses",
+      "Mini Dresses",
+      "Bodycon Dresses",
+      "Party Dresses",
+      "Casual Dresses",
+      "Shirt Dresses"
+     ]
+    },
+    {
+     "name": "Footwear",
+     "subcategories": [
+      "Heels",
+      "Flats",
+      "Sandals",
+      "Sneakers",
+      "Boots",
+      "Wedges",
+      "Loafers",
+      "Sports Shoes"
+     ]
+    },
+    {
+     "name": "Activewear",
+     "subcategories": [
+      "Sports Bras",
+      "Workout Tops",
+      "Tights",
+      "Track Pants",
+      "Track Jackets"
+     ]
+    },
+    {
+     "name": "Lingerie",
+     "subcategories": [
+      "Bras",
+      "Panties",
+      "Shapewear",
+      "Camisoles",
+      "Slips"
+     ]
+    },
+    {
+     "name": "Sleepwear",
+     "subcategories": [
+      "Night Suits",
+      "Pyjamas",
+      "Robes",
+      "Shorts",
+      "Lounge Sets"
+     ]
+    },
+    {
+     "name": "Beauty & Personal Care",
+     "subcategories": [
+      "Makeup",
+      "Skincare",
+      "Haircare",
+      "Fragrances",
+      "Bath & Body"
+     ]
+    },
+    {
+     "name": "Handbags",
+     "subcategories": [
+      "Tote Bags",
+      "Shoulder Bags",
+      "Sling Bags",
+      "Backpacks",
+      "Clutches",
+      "Wallets",
+      "Crossbody Bags"
+     ]
+    },
+    {
+     "name": "Jewellery",
+     "subcategories": [
+      "Earrings",
+      "Necklaces",
+      "Bracelets",
+      "Rings",
+      "Anklets",
+      "Hair Accessories",
+      "Jewellery Sets"
+     ]
+    },
+    {
+     "name": "Watches",
+     "subcategories": [
+      "Analog Watches",
+      "Digital Watches",
+      "Smart Watches",
+      "Bracelet Watches"
+     ]
+    },
+    {
+     "name": "Sunglasses",
+     "subcategories": [
+      "Cat-Eye Sunglasses",
+      "Oversized Sunglasses",
+      "Aviators",
+      "Round Sunglasses"
+     ]
+    },
+    {
+     "name": "Accessories",
+     "subcategories": [
+      "Belts",
+      "Scarves & Stoles",
+      "Caps & Hats",
+      "Socks"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Kids",
+   "categories": [
+    {
+     "name": "Boys Clothing",
+     "subcategories": [
+      "T-Shirts",
+      "Shirts",
+      "Jeans",
+      "Trousers",
+      "Shorts",
+      "Ethnic Wear",
+      "Jackets",
+      "Sweaters",
+      "Hoodies",
+      "Nightwear",
+      "Innerwear",
+      "School Uniforms"
+     ]
+    },
+    {
+     "name": "Girls Clothing",
+     "subcategories": [
+      "Tops",
+      "Dresses",
+      "Frocks",
+      "Jeans",
+      "Skirts",
+      "Shorts",
+      "Ethnic Wear",
+      "Jackets",
+      "Sweaters",
+      "Hoodies",
+      "Nightwear",
+      "Innerwear",
+      "School Uniforms"
+     ]
+    },
+    {
+     "name": "Infants",
+     "subcategories": [
+      "Newborn Clothing",
+      "Bodysuits",
+      "Rompers",
+      "Baby Dresses"
+     ]
+    },
+    {
+     "name": "Baby Care",
+     "subcategories": [
+      "Feeding Essentials",
+      "Diapers",
+      "Baby Skincare"
+     ]
+    },
+    {
+     "name": "Footwear",
+     "subcategories": [
+      "Sneakers",
+      "Sandals",
+      "Sports Shoes",
+      "School Shoes",
+      "Boots",
+      "Slippers"
+     ]
+    },
+    {
+     "name": "Toys",
+     "subcategories": [
+      "Soft Toys",
+      "Dolls",
+      "Action Figures",
+      "Puzzles",
+      "Building Blocks",
+      "Educational Toys",
+      "Board Games",
+      "Outdoor Toys",
+      "Pretend Play"
+     ]
+    },
+    {
+     "name": "School Supplies",
+     "subcategories": [
+      "School Bags",
+      "Lunch Boxes",
+      "Water Bottles",
+      "Notebooks",
+      "Stationery",
+      "Pencil Cases"
+     ]
+    },
+    {
+     "name": "Accessories",
+     "subcategories": [
+      "Caps & Hats",
+      "Sunglasses",
+      "Watches",
+      "Hair Accessories"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Home",
+   "categories": [
+    {
+     "name": "Furniture",
+     "subcategories": [
+      "Sofas",
+      "Beds",
+      "Tables",
+      "Chairs",
+      "Study Tables",
+      "Wardrobes",
+      "Cabinets",
+      "Shelves",
+      "Side Tables"
+     ]
+    },
+    {
+     "name": "Home Decor",
+     "subcategories": [
+      "Wall Art",
+      "Mirrors",
+      "Vases",
+      "Plants",
+      "Planters",
+      "Candles",
+      "Photo Frames",
+      "Clocks"
+     ]
+    },
+    {
+     "name": "Furnishings",
+     "subcategories": [
+      "Cushions",
+      "Curtains",
+      "Rugs",
+      "Carpets",
+      "Mattresses",
+      "Bedsheets",
+      "Blankets",
+      "Quilts",
+      "Pillows"
+     ]
+    },
+    {
+     "name": "Kitchen & Dining",
+     "subcategories": [
+      "Cookware",
+      "Kitchen Tools",
+      "Dinner Sets",
+      "Plates",
+      "Bowls",
+      "Glasses",
+      "Mugs",
+      "Bottles",
+      "Lunch Boxes",
+      "Storage Containers",
+      "Spice Boxes"
+     ]
+    },
+    {
+     "name": "Storage & Organisation",
+     "subcategories": [
+      "Organisers",
+      "Shelves",
+      "Baskets",
+      "Laundry Storage",
+      "Wardrobes",
+      "Storage Boxes"
+     ]
+    },
+    {
+     "name": "Lighting",
+     "subcategories": [
+      "Table Lamps",
+      "Floor Lamps",
+      "Ceiling Lights",
+      "Wall Lights",
+      "Decorative Lights"
+     ]
+    },
+    {
+     "name": "Bath",
+     "subcategories": [
+      "Towels",
+      "Bath Mats",
+      "Shower Curtains",
+      "Bathroom Accessories",
+      "Bathroom Storage"
+     ]
+    },
+    {
+     "name": "Bedding",
+     "subcategories": [
+      "Bedsheets",
+      "Blankets",
+      "Quilts",
+      "Pillows",
+      "Mattresses"
+     ]
+    },
+    {
+     "name": "Home Improvement",
+     "subcategories": [
+      "Tool Kits",
+      "Hardware",
+      "Wallpapers"
+     ]
+    },
+    {
+     "name": "Appliances",
+     "subcategories": [
+      "Kettles",
+      "Mixers & Grinders",
+      "Irons",
+      "Air Fryers"
+     ]
+    },
+    {
+     "name": "Cleaning",
+     "subcategories": [
+      "Mops",
+      "Brooms",
+      "Vacuum Cleaners",
+      "Cleaning Liquids",
+      "Brushes",
+      "Air Fresheners"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Beauty",
+   "categories": [
+    {
+     "name": "Makeup",
+     "subcategories": [
+      "Foundation",
+      "Concealer",
+      "Compact",
+      "Blush",
+      "Highlighter",
+      "Bronzer",
+      "Lipstick",
+      "Lip Gloss",
+      "Lip Balm",
+      "Eyeliner",
+      "Kajal",
+      "Mascara",
+      "Eyeshadow",
+      "Makeup Brushes",
+      "Makeup Kits"
+     ]
+    },
+    {
+     "name": "Skincare",
+     "subcategories": [
+      "Face Wash",
+      "Cleanser",
+      "Toner",
+      "Serum",
+      "Moisturiser",
+      "Sunscreen",
+      "Face Masks",
+      "Exfoliators",
+      "Acne Care",
+      "Eye Care"
+     ]
+    },
+    {
+     "name": "Haircare",
+     "subcategories": [
+      "Shampoo",
+      "Conditioner",
+      "Hair Oil",
+      "Hair Serum",
+      "Hair Colour",
+      "Hair Masks",
+      "Styling Products"
+     ]
+    },
+    {
+     "name": "Fragrances",
+     "subcategories": [
+      "Perfumes",
+      "Deodorants",
+      "Body Mists",
+      "Attars"
+     ]
+    },
+    {
+     "name": "Bath & Body",
+     "subcategories": [
+      "Body Lotion",
+      "Body Wash",
+      "Hand Care",
+      "Foot Care",
+      "Scrubs",
+      "Bath Products"
+     ]
+    },
+    {
+     "name": "Personal Care",
+     "subcategories": [
+      "Feminine Hygiene",
+      "Hand Sanitisers",
+      "Cotton & Wipes"
+     ]
+    },
+    {
+     "name": "Grooming",
+     "subcategories": [
+      "Shaving Products",
+      "Razors",
+      "Beard Care",
+      "Trimmers",
+      "Grooming Kits"
+     ]
+    },
+    {
+     "name": "Oral Care",
+     "subcategories": [
+      "Toothbrushes",
+      "Toothpaste",
+      "Mouthwash",
+      "Dental Floss"
+     ]
+    },
+    {
+     "name": "Beauty Tools",
+     "subcategories": [
+      "Hair Dryers",
+      "Straighteners",
+      "Curling Irons",
+      "Trimmers",
+      "Facial Tools",
+      "Makeup Applicators"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Gen Z",
+   "categories": [
+    {
+     "name": "Trending Now",
+     "subcategories": [
+      "Viral Picks",
+      "New Drops"
+     ]
+    },
+    {
+     "name": "Streetwear",
+     "subcategories": [
+      "Cargo Pants",
+      "Parachute Pants",
+      "Varsity Jackets",
+      "Bomber Jackets",
+      "Hoodies",
+      "Sweatshirts"
+     ]
+    },
+    {
+     "name": "Oversized",
+     "subcategories": [
+      "Oversized T-Shirts",
+      "Baggy Jeans"
+     ]
+    },
+    {
+     "name": "Y2K",
+     "subcategories": [
+      "Crop Tops",
+      "Tank Tops",
+      "Mini Skirts",
+      "Denim Skirts"
+     ]
+    },
+    {
+     "name": "Co-ords",
+     "subcategories": [
+      "Co-ord Sets"
+     ]
+    },
+    {
+     "name": "Partywear",
+     "subcategories": [
+      "Bodycon Dresses",
+      "Party Dresses"
+     ]
+    },
+    {
+     "name": "Graphic Apparel",
+     "subcategories": [
+      "Graphic T-Shirts"
+     ]
+    },
+    {
+     "name": "Sneakers",
+     "subcategories": [
+      "Chunky Sneakers",
+      "Platform Shoes",
+      "Classic Sneakers"
+     ]
+    },
+    {
+     "name": "Bags",
+     "subcategories": [
+      "Sling Bags",
+      "Shoulder Bags",
+      "Backpacks"
+     ]
+    },
+    {
+     "name": "Accessories",
+     "subcategories": [
+      "Caps",
+      "Bucket Hats",
+      "Sunglasses"
+     ]
+    },
+    {
+     "name": "Jewellery",
+     "subcategories": [
+      "Chains",
+      "Bracelets",
+      "Rings",
+      "Earrings"
+     ]
+    },
+    {
+     "name": "Beauty",
+     "subcategories": [
+      "Lip Products",
+      "Fragrances"
+     ]
+    },
+    {
+     "name": "Skincare",
+     "subcategories": [
+      "Skincare Essentials"
+     ]
+    },
+    {
+     "name": "Gadgets",
+     "subcategories": [
+      "Headphones & Speakers",
+      "Watches & Wearables",
+      "Phone Accessories"
+     ]
+    },
+    {
+     "name": "Lifestyle",
+     "subcategories": [
+      "Desk Decor",
+      "Stickers & Badges",
+      "Water Bottles"
+     ]
+    }
+   ]
+  }
+ ]
+}

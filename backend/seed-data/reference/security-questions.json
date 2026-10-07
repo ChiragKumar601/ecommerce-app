@@ -1,0 +1,13 @@
+{
+  "_source": "Predefined security questions (R-11, DAT-005: at least 6)",
+  "questions": [
+    "What was the name of your first school?",
+    "What is your mother's maiden name?",
+    "What was the name of your first pet?",
+    "In which city were you born?",
+    "What was your childhood nickname?",
+    "What is the name of the street you grew up on?",
+    "What was the make of your first vehicle?",
+    "What is your favourite book?"
+  ]
+}
