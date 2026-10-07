@@ -395,6 +395,10 @@ model Account {
   bag                         Bag?
   bagLines                    BagLine[]
   wishlist                    WishlistEntry[]
+  savedCards                  SavedCard[]
+  giftCards                   AccountGiftCard[]
+  supportRequests             SupportRequest[]
+  deletionRequestedAt         DateTime?
 }
 
 /// Server-side session; the cookie carries a random token, the table stores its SHA-256 (SEC-001).
@@ -501,4 +505,69 @@ model WishlistEntry {
 
   @@id([accountId, productId])
   @@index([accountId, addedAt])
+}
+
+// ───────────────────────── M6 profile & wallet (Stage 12) ─────────────────────────
+
+/// Masked card only: never the full number or CVV (SEC-003). At most 5 per account; one default.
+model SavedCard {
+  id          String   @id
+  accountId   String
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  nameOnCard  String
+  last4       String
+  network     String
+  issuingBank String
+  cardType    String // 'credit' | 'debit'
+  expiryMonth Int
+  expiryYear  Int
+  isDefault   Boolean  @default(false)
+  /// SHA-256 of the designated test card number, so the simulator can find its forced outcome.
+  testCardRef String
+  createdAt   DateTime
+
+  @@index([accountId, createdAt])
+}
+
+/// A demo gift card redeemed by an account (spec §4.4, §7.6). Unique per (account, code).
+model AccountGiftCard {
+  id             String          @id
+  accountId      String
+  account        Account         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  code           String
+  initialBalance Int
+  balance        Int
+  redeemedAt     DateTime
+  expiresAt      DateTime
+  status         String // 'active' | 'exhausted' | 'expired'
+  transactions   GiftCardTxn[]
+
+  @@unique([accountId, code])
+}
+
+model GiftCardTxn {
+  id                String          @id
+  accountGiftCardId String
+  giftCard          AccountGiftCard @relation(fields: [accountGiftCardId], references: [id], onDelete: Cascade)
+  amount            Int // paise, + or −
+  type              String // 'redeem' | 'order_debit' | 'order_debit_reversal' | 'refund_credit'
+  orderId           String?
+  createdAt         DateTime
+
+  @@index([accountGiftCardId, createdAt])
+}
+
+/// Contact Us requests (PRF-006, T-37). `account_deletion` leads to a purge at the next daily run (PRV-002).
+model SupportRequest {
+  id            String   @id
+  requestNumber String   @unique
+  accountId     String
+  account       Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  type          String
+  orderId       String?
+  message       String
+  status        String   @default("submitted")
+  createdAt     DateTime
+
+  @@index([accountId, createdAt])
 }

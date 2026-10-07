@@ -26,14 +26,19 @@ const authRoutes: RouteObject[] = [
   { path: 'forgot-password', lazy: authPage('ForgotPasswordPage'), handle: { title: () => 'Reset password' } },
 ];
 
+const accountPage = (name: 'AccountHome' | 'EditProfilePage' | 'CreditsPage' | 'GiftCardsPage' | 'SavedCardsPage' | 'ContactUsPage') => async () => ({
+  Component: (await import('./routes/account/AccountPages'))[name],
+});
+
 /** Protected routes (AUTH-015): the guard loader sends guests to the login page and back. */
 const accountRoutes: RouteObject[] = [
-  {
-    path: 'account',
-    loader: requireAuth,
-    handle: { title: () => 'My account' },
-    lazy: async () => ({ Component: (await import('./routes/account/AccountHome')).AccountHome }),
-  },
+  { path: 'account', loader: requireAuth, lazy: accountPage('AccountHome'), handle: { title: () => 'My account' } },
+  { path: 'account/profile', loader: requireAuth, lazy: accountPage('EditProfilePage'), handle: { title: () => 'Edit profile' } },
+  { path: 'account/credits', loader: requireAuth, lazy: accountPage('CreditsPage'), handle: { title: () => 'Credits' } },
+  { path: 'account/gift-cards', loader: requireAuth, lazy: accountPage('GiftCardsPage'), handle: { title: () => 'Gift cards' } },
+  { path: 'account/cards', loader: requireAuth, lazy: accountPage('SavedCardsPage'), handle: { title: () => 'Saved cards' } },
+  { path: 'account/support', loader: requireAuth, lazy: accountPage('ContactUsPage'), handle: { title: () => 'Contact us' } },
+  { path: 'demo-help', lazy: async () => ({ Component: (await import('./routes/DemoHelp')).DemoHelpPage }), handle: { title: () => 'Demo help' } },
 ];
 
 export const routes: RouteObject[] = [

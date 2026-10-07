@@ -24,7 +24,7 @@ test.describe('accounts and authentication (S10)', () => {
     await page.getByRole('button', { name: 'Create account' }).click();
     await expect(page).toHaveURL(/\/$/);
     await page.goto('/account');
-    await expect(page.getByRole('heading', { level: 1, name: 'Hi, Asha' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Asha Kumar' })).toBeVisible();
   });
 
   test('protected route → login → back to the route; wrong password message; logout confirmation (AUTH-005, AUTH-013, AUTH-015)', async ({ page, context }) => {
@@ -40,7 +40,7 @@ test.describe('accounts and authentication (S10)', () => {
     await page.getByLabel(/^Password/).fill(PASSWORD);
     await page.getByRole('button', { name: 'Log in' }).click();
     await expect(page).toHaveURL(/\/account$/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Hi, Test' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Test Shopper' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Log out' }).click();
     const dialog = page.getByRole('dialog', { name: 'Log out?' });

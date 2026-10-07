@@ -76,7 +76,9 @@ test.describe('bag and wishlist (S11)', () => {
     const card = page.getByRole('article', { name });
     await card.getByRole('button', { name: 'Move to Bag' }).click();
     const picker = page.getByRole('dialog', { name: 'Select size' });
-    if (await picker.isVisible().catch(() => false)) {
+    // Several sizes in stock → a size picker; a single one moves straight away.
+    await expect(picker.or(page.getByText('Moved to bag', { exact: true }))).toBeVisible();
+    if (await picker.isVisible()) {
       await picker.getByRole('radio').first().click();
       await picker.getByRole('button', { name: 'Move to Bag' }).click();
     }

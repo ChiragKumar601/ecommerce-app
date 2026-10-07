@@ -418,3 +418,21 @@ A short chronological record of the important steps, decisions and changes on th
     - The account wishlist toggle is optimistic and reverts on error.
     - Customer delivery details from the default address follow in S13 (PR-09).
 86. **Tests:** lint and typecheck pass; shared 26, backend 241 (+16 bag/wishlist/merge: guest quote amounts and tax, add caps, flags, price change, every coupon reason and auto-removal, bank-offer preview, stored bag operations, line limit, wishlist statuses and move-to-bag, merge with caps and messages, coupon precedence, EC-15); frontend 19; E2E 176 passed / 16 viewport-skipped, including UF-01, the bag page flows, wishlist move-to-bag, UF-03 (guest bag → login prompt → merged account bag) and axe on the bag. Bag and PDP checked at 360 and 1280 px with no horizontal scroll.
+
+## 2026-10-07 — Stage 12: Profile, wallet, cards, support, demo help (complete)
+
+87. **Backend:**
+    - Migration M6: `SavedCard` (masked only; one default via a partial unique index), `AccountGiftCard` (balance never negative, enforced by triggers), `GiftCardTxn`, `SupportRequest`, and `Account.deletionRequestedAt`.
+    - Profile read and update: changing email, phone, password or security question needs the current password; at least one identifier; duplicates rejected with the profile message; age ≥ 18.
+    - Credits ledger (balance plus 20 per page). Gift card redeem (case-insensitive; invalid / already redeemed / inactive) and list (masked code, balance, status with lazy expiry, transactions).
+    - Saved cards: only designated test cards, with a SHA-256 reference instead of the number; the CVV is validated and dropped; limit 5; removing the default promotes the most recent card; set default.
+    - Support requests numbered `SR-YYMMDD-XXXXX`; `account_deletion` records the request for the S21 purge.
+    - `GET /demo-help`: test cards, UPI IDs, gift codes, return tags and image credits.
+    - **Idempotency middleware (API-003):** claims the key before the handler runs, so a concurrent duplicate waits and gets the same response; a replay sends the stored response; 5xx releases the key. Used on gift-card redeem and support requests now, and on Pay, Retry, Cancel and Return later.
+88. **Frontend:**
+    - Profile home with every PRF-001 entry (plus the PRF-007 dot on Orders), Edit Profile (the current-password field appears only for sensitive changes), Credits, Gift Cards (redeem form plus a list with transactions), Saved Cards (add with the demo warning, set default, remove with confirmation), and Contact Us (FAQs by topic, request form, list).
+    - A public `/demo-help` page with copy buttons and image credits for every product photo (OD-7, OD-11).
+    - The demo banner now links to Demo help.
+    - Reusable `CardFields`, `RedeemGiftCardForm` and `DemoCardWarning` for the payment step (S15).
+    - Account links to Orders and Saved Addresses go live in S16 and S13.
+89. **Tests:** lint and typecheck pass; shared 26, backend 251 (+10: profile rules, credits, gift card redeem/replay/expiry, saved-card rules and no stored number/CVV, support and deletion, AUTHZ-002 for another account's card, demo help); frontend 19; E2E 189 passed / 16 viewport-skipped, including the S12 account flows, demo help and axe on every account page. Two flaky tests were fixed (a size-picker race and a long axe sweep on Firefox) and were stable over repeated runs. Account pages checked at 360 and 1280 px with no horizontal scroll.

@@ -9,6 +9,7 @@ import { contentRouter } from './routes/content.js';
 import { catalogueRouter } from './routes/catalogue.js';
 import { authRouter } from './routes/auth.js';
 import { bagRouter } from './routes/bag.js';
+import { meRouter } from './routes/me.js';
 import { sessionMiddleware } from './middleware/session.js';
 
 /** Downloaded catalogue images (OD-11): immutable files named by content hash. */
@@ -36,6 +37,7 @@ export function createApp(ctx: AppContext): Express {
   api.use(catalogueRouter(ctx));
   api.use(authRouter(ctx));
   api.use(bagRouter(ctx));
+  api.use(meRouter(ctx));
   api.use(apiNotFound);
   app.use('/api/v1', api);
   app.use(errorHandler(ctx.logger));
