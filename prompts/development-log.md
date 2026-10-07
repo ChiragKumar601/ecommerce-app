@@ -239,3 +239,20 @@ A short chronological record of the important steps, decisions and changes on th
     - **Invisible button labels**, caught by screenshot review: tailwind-merge dropped `text-white` because it didn't know the custom `text-body` scale. Fixed with `extendTailwindMerge` and a regression test.
     - **Misplaced files:** a parallel tool call wrote frontend files into `backend/src`. They were moved, and writes now always use absolute paths with no parallel writes.
 55. **Tests:** lint and typecheck pass; shared 26, backend 131, frontend 12; E2E 21 (banner at 360/768/1024/1280 with no horizontal scroll, Not found, titles, axe WCAG 2.1 AA scan) on Chromium, Firefox and mobile. Landing JS is 135 KB gzip (budget 170).
+
+## 2026-10-07 — Stage 5: Navigation, footer, content pages (complete)
+
+56. **Owner (again): complete everything up to Stage 16.**
+57. **Built:**
+    - **Backend:** `GET /nav` (active tree, section hrefs `/shop/<section>`, cached per catalogue version), `GET /site` (brand, banner, footer, popular searches, sample company details), `GET /content/pages/:slug`, `GET /faqs`.
+    - **Frontend header:** logo, Radix NavigationMenu mega menus (hover/keyboard/Escape, columns of categories and subcategories, "Shop all", scrolls inside the panel), an always-visible desktop search bar (Enter → `/search?q=`), Profile/Wishlist/Bag icons with labels and a bag badge (wired up in S11).
+    - **Mobile:** slide-out drawer with nested accordions, focus trap and focus returned to the menu button; full-screen search overlay.
+    - **Footer** in the LND-007 order.
+    - **Content pages:** a safe mini-Markdown renderer and the "Placeholder content" label.
+58. **Bugs fixed via screenshots and tests:**
+    - The mega menu panel had zero height (missing the Radix viewport height variable).
+    - The logo wrapped onto two lines at 390 px.
+    - **4 px of horizontal scroll at 360 px.** Fixed with a compact "W&Co." wordmark below 400 px, keeping 44 px touch targets per FE-004.
+    - Drawer focus return made explicit.
+    - Test fixes: exact role names, waiting for site data, and scoping to `main`.
+59. **Tests:** lint and typecheck pass; backend 136, frontend 12, shared 26; E2E 50 passed on Chromium, Firefox and mobile (4 desktop-only tests skipped on mobile), including axe.

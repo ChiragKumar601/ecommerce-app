@@ -5,7 +5,7 @@ import helmet from 'helmet';
 import type { AppContext } from './context.js';
 import { apiNotFound, errorHandler, originCheck, requestContext } from './middleware/core.js';
 import { healthRouter } from './routes/health.js';
-import { siteRouter } from './routes/site.js';
+import { contentRouter } from './routes/content.js';
 
 /** Downloaded catalogue images (OD-11): immutable files named by content hash. */
 const CATALOGUE_MEDIA = resolve(import.meta.dirname, '../../storage/catalogue');
@@ -27,7 +27,7 @@ export function createApp(ctx: AppContext): Express {
   api.use(cookieParser());
   api.use(originCheck(ctx.env.allowedOrigins));
   api.use(healthRouter);
-  api.use(siteRouter(ctx));
+  api.use(contentRouter(ctx));
   api.use(apiNotFound);
   app.use('/api/v1', api);
   app.use(errorHandler(ctx.logger));

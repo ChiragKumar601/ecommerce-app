@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 import { Dialog as DialogPrimitive, Popover as PopoverPrimitive, Tooltip as TooltipPrimitive } from 'radix-ui';
-import type { ReactNode } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import { cn } from '../../lib/cn';
 import { Button } from './button';
 
@@ -62,14 +62,24 @@ const sheetSide = {
 };
 
 /** Side or bottom panel (filters, mobile menu): bottom on mobile, side on desktop (plan §8.5). */
-export function Sheet({ open, onOpenChange, title, side = 'right', children, footer, className }: {
+export function Sheet({ open, onOpenChange, title, side = 'right', children, footer, className, returnFocusRef }: {
   open: boolean; onOpenChange: (o: boolean) => void; title: string; side?: keyof typeof sheetSide; children: ReactNode; footer?: ReactNode; className?: string;
+  /** Element to focus when the sheet closes (the button that opened it), FE-004. */
+  returnFocusRef?: RefObject<HTMLElement | null>;
 }) {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className={overlay} />
-        <DialogPrimitive.Content className={cn('fixed z-[61] flex flex-col bg-surface shadow-3', sheetSide[side], className)}>
+        <DialogPrimitive.Content
+          className={cn('fixed z-[61] flex flex-col bg-surface shadow-3', sheetSide[side], className)}
+          onCloseAutoFocus={(e) => {
+            if (returnFocusRef?.current) {
+              e.preventDefault();
+              returnFocusRef.current.focus();
+            }
+          }}
+        >
           <div className="flex items-center justify-between border-b border-line px-5 py-4">
             <DialogPrimitive.Title className="text-h4 font-semibold">{title}</DialogPrimitive.Title>
             <DialogPrimitive.Description className="sr-only">{title}</DialogPrimitive.Description>

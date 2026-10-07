@@ -107,15 +107,3 @@ describe('API platform (S4.1–S4.2)', () => {
   });
 });
 
-describe('GET /api/v1/site (GLB-001)', () => {
-  it('returns the brand name and demo banner text from settings', async () => {
-    const t = await createTestApp({
-      seed: async (ctx) => {
-        await ctx.db.setting.create({ data: { key: 'demoBanner.text', value: 'Demo store — for showcase only.' } });
-      },
-    });
-    const res = await request(t.app).get('/api/v1/site');
-    expect(res.body).toEqual({ brandName: 'Wardrobe & Co.', demoBanner: 'Demo store — for showcase only.' });
-    await t.cleanup();
-  });
-});

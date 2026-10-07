@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-test('the app shell shows the demo banner and reaches the backend (GLB-001)', async ({ page }) => {
+test('the app shell shows the demo banner (GLB-001)', async ({ page }) => {
   await page.goto('/');
   const banner = page.getByRole('note', { name: 'Demo notice' });
   await expect(banner).toHaveText(/Demo store — for showcase only/);
@@ -22,7 +22,7 @@ for (const width of [360, 768, 1024, 1280]) {
 test('unknown routes show Page not found with search and a home link (GLB-005)', async ({ page }) => {
   await page.goto('/this/page/does-not-exist/at-all');
   await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
-  await expect(page.getByRole('search')).toBeVisible();
+  await expect(page.getByRole('main').getByRole('search')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Go to the home page' })).toHaveAttribute('href', '/');
   await expect(page).toHaveTitle('Page not found – Wardrobe & Co.');
 });
