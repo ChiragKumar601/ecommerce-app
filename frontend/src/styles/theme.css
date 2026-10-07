@@ -1,0 +1,117 @@
+/*
+ * Design tokens (plan §8.5, OD-9). Every colour, size, radius, shadow and motion value used by
+ * components comes from here. Text/background pairs meet WCAG 2.1 AA (FE-004).
+ */
+@theme {
+  /* Typography */
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --text-display: 2.75rem;
+  --text-display--line-height: 1.08;
+  --text-display--letter-spacing: -0.02em;
+  --text-h1: 2rem;
+  --text-h1--line-height: 1.15;
+  --text-h1--letter-spacing: -0.015em;
+  --text-h2: 1.5rem;
+  --text-h2--line-height: 1.25;
+  --text-h2--letter-spacing: -0.01em;
+  --text-h3: 1.25rem;
+  --text-h3--line-height: 1.3;
+  --text-h4: 1.0625rem;
+  --text-h4--line-height: 1.4;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.55;
+  --text-small: 0.8125rem;
+  --text-small--line-height: 1.45;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.35;
+
+  /* Colour — neutrals (warm) */
+  --color-canvas: #fbfaf8;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f4f1ec;
+  --color-surface-sunken: #ece8e1;
+  --color-ink: #16161a;
+  --color-ink-soft: #3d3d46;
+  --color-ink-muted: #63636e;
+  --color-line: #e6e1d9;
+  --color-line-strong: #c9c1b4;
+
+  /* Colour — brand and roles */
+  --color-brand: #b3244e;
+  --color-brand-hover: #961a40;
+  --color-brand-soft: #fbe9ee;
+  --color-on-brand: #ffffff;
+  --color-sale: #b54708;
+  --color-success: #1e7a4c;
+  --color-success-soft: #e7f5ee;
+  --color-warning: #8f5a00;
+  --color-warning-soft: #fdf3e1;
+  --color-danger: #b42318;
+  --color-danger-soft: #fdecea;
+  --color-info: #1d4ed8;
+  --color-info-soft: #e8eefd;
+  --color-focus: #2563eb;
+
+  /* Shape and depth */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --shadow-1: 0 1px 2px rgb(22 22 26 / 0.06), 0 1px 1px rgb(22 22 26 / 0.04);
+  --shadow-2: 0 6px 16px -4px rgb(22 22 26 / 0.1), 0 2px 4px rgb(22 22 26 / 0.05);
+  --shadow-3: 0 18px 40px -10px rgb(22 22 26 / 0.22), 0 6px 12px -6px rgb(22 22 26 / 0.12);
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.3, 0, 0, 1.15);
+  --animate-fade-in: fade-in 200ms var(--ease-standard);
+  --animate-slide-up: slide-up 250ms var(--ease-standard);
+  --animate-slide-in-right: slide-in-right 250ms var(--ease-standard);
+  --animate-slide-in-left: slide-in-left 250ms var(--ease-standard);
+  --animate-shimmer: shimmer 1.4s linear infinite;
+
+  /* Layout */
+  --container-page: 1440px;
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+}
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes slide-in-right { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes slide-in-left { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes shimmer { from { background-position: -400px 0; } to { background-position: 400px 0; } }
+
+@layer base {
+  :root {
+    --page-gutter: 1rem;
+    --header-z: 40;
+    color-scheme: light;
+  }
+  @media (min-width: 48rem) { :root { --page-gutter: 1.5rem; } }
+  @media (min-width: 80rem) { :root { --page-gutter: 2rem; } }
+
+  html { -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; }
+  body {
+    @apply bg-canvas font-sans text-body text-ink antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius-xs); }
+  ::selection { background: var(--color-brand-soft); color: var(--color-ink); }
+  img { max-width: 100%; display: block; }
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  }
+}
+
+@utility container-page {
+  width: 100%;
+  max-width: var(--container-page);
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}

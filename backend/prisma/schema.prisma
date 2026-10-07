@@ -349,3 +349,14 @@ model RatingAggregate {
   c4         Int
   c5         Int
 }
+
+// ───────────────────────── Platform (Stage 4) ─────────────────────────
+
+/// Fixed-window rate-limit counters, shared across processes (SEC-004).
+model RateLimitBucket {
+  key         String   @id // `<group>:<client>:<windowStart>`
+  windowStart DateTime
+  count       Int
+
+  @@index([windowStart])
+}

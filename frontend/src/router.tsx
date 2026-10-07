@@ -1,5 +1,24 @@
-import { createBrowserRouter } from 'react-router';
-import { HealthPage } from './routes/HealthPage';
+import { createBrowserRouter, type RouteObject } from 'react-router';
+import { RootLayout } from './components/layout/RootLayout';
+import { Home } from './routes/Home';
+import { NotFound } from './routes/NotFound';
+import { RouteError } from './routes/RouteError';
 
-// Route table (plan §8.1). Data-mode router; real routes are added stage by stage.
-export const router = createBrowserRouter([{ path: '/', element: <HealthPage /> }]);
+// Route table (plan §8.1, spec §10.1). Data-mode router; page routes are added stage by stage.
+const devRoutes: RouteObject[] = import.meta.env.DEV
+  ? [{ path: 'dev/styleguide', lazy: async () => ({ Component: (await import('./routes/dev/Styleguide')).Styleguide }), handle: { title: () => 'Styleguide' } }]
+  : [];
+
+export const routes: RouteObject[] = [
+  {
+    element: <RootLayout />,
+    errorElement: <RouteError />,
+    children: [
+      { index: true, element: <Home /> },
+      ...devRoutes,
+      { path: '*', element: <NotFound />, handle: { title: () => 'Page not found' } },
+    ],
+  },
+];
+
+export const router = createBrowserRouter(routes);

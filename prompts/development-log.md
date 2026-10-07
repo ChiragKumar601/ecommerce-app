@@ -218,3 +218,24 @@ A short chronological record of the important steps, decisions and changes on th
     - `seed:verify` passes; the only warning is the total being above "about 2,500" (OD-12).
     - Committed: the manifest of attribution metadata, placeholders and seed sources. Image files are gitignored and rebuilt by `pnpm images:fetch`, which restores missing files from the manifest.
     - Pushed to `main`.
+
+## 2026-10-07 — Stage 4: Platform layers, design system, app shell (complete)
+
+50. **Owner: complete up to Stage 16 as fast as possible**, still testing, logging and committing each stage.
+51. **Backend platform:**
+    - Express pipeline: helmet, request IDs, structured logging with secret redaction, JSON limit, cookie-parser, CSRF Origin check (allowed origins via `FRONTEND_ORIGIN`), zod `validate` with field errors, and an error handler mapping everything to the §13 envelope (unexpected errors → generic message, static 404s → `NOT_FOUND`).
+    - SQLite fixed-window rate limiter with Retry-After.
+    - `SettingsStore` with a 60 s cache and a catalogue-version change event.
+    - `AppContext` injection (DB, clock, random, logger, settings), so tests control time.
+    - `GET /api/v1/site` (brand, demo banner).
+    - The `RateLimitBucket` table moved forward from M4 (S10) because S4.2 needs it — a small plan correction.
+52. **Design system:**
+    - `theme.css` tokens: warm neutrals, rosewood brand, sale, success, warning, danger and info colours (AA contrast); Inter variable type scale; radii; shadows; motion; layout gutters.
+    - `components/ui`: Button/IconButton (loading state), FormField (linked label, hint and error), Input, Textarea, Select, Checkbox, Radio, Switch, RangeSlider, Badge, Chip, Card, Dialog, ConfirmDialog, Sheet, Popover, Tooltip, Tabs, Accordion, Toast with Undo, Skeleton, Spinner, EmptyState, ErrorState, InlineMessage, PriceTag, RatingBadge, QuantityStepper, Stepper, PageLayout, PageHeader, Section, Breadcrumbs.
+    - Dev-only `/dev/styleguide`, excluded from production.
+    - Added `lucide-react` (icons) and `@fontsource-variable/inter` (self-hosted font).
+53. **Shell:** non-dismissible demo banner, wordmark logo linking home, skip link, `Seo` (titles and canonical link from route handles), Not found page with search and a home link, route error page, Toaster. The API client has the error envelope, idempotency keys, a session-expiry hook and a generic network message.
+54. **Bugs found and fixed:**
+    - **Invisible button labels**, caught by screenshot review: tailwind-merge dropped `text-white` because it didn't know the custom `text-body` scale. Fixed with `extendTailwindMerge` and a regression test.
+    - **Misplaced files:** a parallel tool call wrote frontend files into `backend/src`. They were moved, and writes now always use absolute paths with no parallel writes.
+55. **Tests:** lint and typecheck pass; shared 26, backend 131, frontend 12; E2E 21 (banner at 360/768/1024/1280 with no horizontal scroll, Not found, titles, axe WCAG 2.1 AA scan) on Chromium, Firefox and mobile. Landing JS is 135 KB gzip (budget 170).
