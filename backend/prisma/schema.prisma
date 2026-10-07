@@ -304,6 +304,7 @@ model Review {
   product           Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
   /// Null for seeded reviews and after an account is purged (PRV-003). FK added with accounts (M4).
   authorAccountId   String?
+  author            Account?       @relation(fields: [authorAccountId], references: [id], onDelete: SetNull)
   authorDisplayName String
   rating            Int
   text              String?
@@ -359,4 +360,104 @@ model RateLimitBucket {
   count       Int
 
   @@index([windowStart])
+}
+
+// ───────────────────────── M4 accounts (Stage 10) ─────────────────────────
+
+/// Customer account (spec §4.3). At least one of email/phone (CHECK in SQL); each unique when set (R-08).
+model Account {
+  id                          String              @id
+  name                        String
+  email                       String?             @unique
+  phone                       String?             @unique
+  passwordHash                String
+  securityQuestionId          String
+  securityAnswerHash          String
+  gender                      String?
+  dateOfBirth                 String? // YYYY-MM-DD
+  ageConfirmedAt              DateTime
+  createdAt                   DateTime            @default(now())
+  failedLoginCount            Int                 @default(0)
+  lockedUntil                 DateTime?
+  failedResetCount            Int                 @default(0)
+  resetLockedUntil            DateTime?
+  passwordChangedAt           DateTime?
+  passwordChangeNoticePending Boolean             @default(false)
+  /// Last login or authenticated activity (PRV-001 inactivity purge).
+  lastActivityAt              DateTime            @default(now())
+  sessions                    Session[]
+  recentSearches              RecentSearch[]
+  creditEntries               CreditLedgerEntry[]
+  resetTokens                 PasswordResetToken[]
+  reviews                     Review[]
+}
+
+/// Server-side session; the cookie carries a random token, the table stores its SHA-256 (SEC-001).
+model Session {
+  id             String    @id // sha256(token)
+  accountId      String
+  account        Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  lastActivityAt DateTime  @default(now())
+  expiresAt      DateTime
+  revokedAt      DateTime?
+
+  @@index([accountId])
+}
+
+/// Single-use token issued after a correct security answer (AUTH-009), stored hashed.
+model PasswordResetToken {
+  id        String    @id // sha256(token)
+  accountId String
+  account   Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+}
+
+/// Failure counters for identifiers with no account, keyed by purpose + client (+ identifier), so
+/// lockout responses look the same whether or not an account exists (AUTH-006, AUTH-009, SD-38).
+model AuthThrottle {
+  key         String    @id
+  failures    Int       @default(0)
+  lockedUntil DateTime?
+  updatedAt   DateTime  @updatedAt
+}
+
+/// Account recent searches (SRC-009, ≤ 10, case-insensitive unique).
+model RecentSearch {
+  id         String   @id
+  accountId  String
+  account    Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  term       String
+  termLower  String
+  searchedAt DateTime
+
+  @@unique([accountId, termLower])
+  @@index([accountId, searchedAt])
+}
+
+/// Stored responses for repeated idempotency keys (API-003). Cleaned up after 24 h.
+model IdempotencyKey {
+  key          String   @id // accountId:route:clientKey
+  requestHash  String
+  status       Int
+  responseBody String
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+/// Credits ledger (spec §4.4): balance = sum of amounts; credits don't expire (SD-11).
+model CreditLedgerEntry {
+  id        String   @id
+  accountId String
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  amount    Int // paise, + or −
+  type      String // 'signup_grant' | 'order_debit' | 'order_debit_reversal' | 'refund_credit'
+  orderId   String?
+  refundId  String?
+  note      String
+  createdAt DateTime @default(now())
+
+  @@index([accountId, createdAt])
 }

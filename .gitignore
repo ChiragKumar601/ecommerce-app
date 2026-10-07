@@ -10,6 +10,7 @@ coverage/
 # backend data & uploads
 backend/data/*.db
 backend/data/*.db-*
+backend/data/e2e.ready
 backend/storage/uploads/*
 !backend/storage/uploads/.gitkeep
 backend/src/generated/

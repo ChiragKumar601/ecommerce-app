@@ -2,6 +2,7 @@ import { createBrowserRouter, type RouteObject } from 'react-router';
 import { RootLayout } from './components/layout/RootLayout';
 import { listingRoutes } from './features/listing/routes';
 import { contentPageLoader, homeLoader } from './features/content';
+import { guestOnly, requireAuth } from './features/session';
 import { NotFound } from './routes/NotFound';
 import { RouteError } from './routes/RouteError';
 
@@ -15,6 +16,25 @@ const devRoutes: RouteObject[] = import.meta.env.DEV
       },
     ]
   : [];
+
+const authPage = (name: 'LoginPage' | 'SignupPage' | 'ForgotPasswordPage') => async () => ({ Component: (await import('./routes/auth/AuthPages'))[name] });
+
+/** Auth pages (AUTH-001…010). Login and sign-up skip straight to the destination when already logged in. */
+const authRoutes: RouteObject[] = [
+  { path: 'login', loader: guestOnly, lazy: authPage('LoginPage'), handle: { title: () => 'Log in' } },
+  { path: 'signup', loader: guestOnly, lazy: authPage('SignupPage'), handle: { title: () => 'Create account' } },
+  { path: 'forgot-password', lazy: authPage('ForgotPasswordPage'), handle: { title: () => 'Reset password' } },
+];
+
+/** Protected routes (AUTH-015): the guard loader sends guests to the login page and back. */
+const accountRoutes: RouteObject[] = [
+  {
+    path: 'account',
+    loader: requireAuth,
+    handle: { title: () => 'My account' },
+    lazy: async () => ({ Component: (await import('./routes/account/AccountHome')).AccountHome }),
+  },
+];
 
 export const routes: RouteObject[] = [
   {
@@ -32,6 +52,8 @@ export const routes: RouteObject[] = [
             loader: contentPageLoader,
             handle: { title: (d: unknown) => (d as { title: string }).title },
           },
+          ...authRoutes,
+          ...accountRoutes,
           ...devRoutes,
           ...listingRoutes,
           { path: '*', element: <NotFound />, handle: { title: () => 'Page not found' } },

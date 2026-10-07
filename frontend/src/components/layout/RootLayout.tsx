@@ -3,6 +3,7 @@ import { SITE_FALLBACK, useSite } from '../../features/site';
 import { Footer } from '../nav/Footer';
 import { Header } from '../nav/Header';
 import { Toaster } from '../ui/toast';
+import { AuthDialogs } from '../auth/AuthDialogs';
 import { DemoBanner } from './DemoBanner';
 import { Seo } from './Seo';
 
@@ -22,6 +23,7 @@ export function RootLayout() {
       </main>
       <Footer site={site} />
       <Toaster />
+      <AuthDialogs />
       <ScrollRestoration />
     </div>
   );

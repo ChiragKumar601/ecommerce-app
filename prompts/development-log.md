@@ -369,3 +369,25 @@ A short chronological record of the important steps, decisions and changes on th
     - Shell files import specific ui modules.
     - Measured in a production preview, JS downloaded on `/`: **157.2 KB gzip** (budget 170). PLP is 171 KB and PDP 174 KB; the budget applies to the landing route. Lighthouse is still deferred to Stage 22.
 78. **Tests:** lint and typecheck pass; shared 26, backend 208 (+7 PDP API: variants/default, offers eligibility, returns/colours/breadcrumb nodes, inactive and unknown products, recommendation rules, reviews sort/filter/hidden, pincode); frontend 17; E2E 149 passed / 16 viewport-skipped, including PDP content and title, canonical redirect, sizes, viewer, pincode (and remembered), offers/size guide/specs, reviews, rails, wishlist and axe.
+
+## 2026-10-07 — Owner request: complete Stages 10–16
+
+79. **Owner asked for Stages 10 through 16 to be completed** in this session, each tested, logged and committed as before. The Mapbox token for Stage 13 isn't available yet, so the map step will turn on only when `VITE_MAPBOX_TOKEN` is set; the manual address path (ADDR-003, always required by the spec) works without it.
+
+## 2026-10-07 — Stage 10: Accounts and authentication (complete)
+
+80. **Backend:**
+    - Migration M4: `Account` (identifier CHECK), `Session` (the cookie holds a random token; the table stores its SHA-256), `PasswordResetToken`, `AuthThrottle`, `RecentSearch`, `IdempotencyKey`, `CreditLedgerEntry`.
+    - Argon2id (`@node-rs/argon2`) for passwords and normalised security answers. Every login and reset attempt costs exactly one Argon2 verify (a dummy hash for unknown identifiers).
+    - Sign-up with the ₹500 `signup_grant`. Login with identical responses for unknown identifiers and wrong passwords; account lockout after 5 failures; a client-keyed lockout for unknown identifiers (SD-38); rate limits.
+    - Password reset: the question is chosen from the full list, failures are neutral, 5 wrong answers lock it, a single-use reset token sets the new password, every session is revoked, and the notice is shown at the next login.
+    - Session middleware: 60-minute idle and 24-hour absolute expiry, activity written at most once a minute. Logout, `GET /auth/session`, and account recent searches.
+    - E2E now runs on its own database (`e2e.db`): a snapshot of the dev catalogue without accounts, with raised rate limits.
+81. **Frontend:**
+    - Login, sign-up and forgot-password pages, the `LoginPromptDialog`, `intent-resume`, route guards (`/account` → `/login?returnTo=…`), and logout with confirmation.
+    - On SESSION_EXPIRED, a login dialog opens on the current page and the interrupted request is re-sent with the same idempotency key.
+    - Recent searches are account-backed for customers and merged from the device at login.
+    - The Profile icon gets an unseen-updates dot, fed by the session (orders arrive in S16).
+    - **Implementation choice:** forms use a small `useZodForm` hook over the shared zod schemas instead of react-hook-form. It's the same behaviour (validate on blur and submit, field errors linked and announced, inputs kept except secrets) with no extra dependency.
+82. **Bug fixed:** the constraints test created a review for an account that didn't exist, which the new M4 foreign key rejected. The test now creates the account and also checks the one-identifier CHECK.
+83. **Tests:** lint and typecheck pass; shared 26, backend 225, frontend 19 (+2 intent-resume); E2E 161 passed / 16 viewport-skipped, including sign-up validation, guard → login → return, the wrong-password message, logout confirmation, UF-13 (neutral wrong question, normalised answer, notice at next login) and axe on the auth pages. Auth pages checked at 360 and 1280 px with no horizontal scroll.

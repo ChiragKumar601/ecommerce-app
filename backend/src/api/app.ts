@@ -7,6 +7,8 @@ import { apiNotFound, errorHandler, originCheck, requestContext } from './middle
 import { healthRouter } from './routes/health.js';
 import { contentRouter } from './routes/content.js';
 import { catalogueRouter } from './routes/catalogue.js';
+import { authRouter } from './routes/auth.js';
+import { sessionMiddleware } from './middleware/session.js';
 
 /** Downloaded catalogue images (OD-11): immutable files named by content hash. */
 const CATALOGUE_MEDIA = resolve(import.meta.dirname, '../../storage/catalogue');
@@ -27,9 +29,11 @@ export function createApp(ctx: AppContext): Express {
   api.use(express.json({ limit: '100kb' }));
   api.use(cookieParser());
   api.use(originCheck(ctx.env.allowedOrigins));
+  api.use(sessionMiddleware(ctx));
   api.use(healthRouter);
   api.use(contentRouter(ctx));
   api.use(catalogueRouter(ctx));
+  api.use(authRouter(ctx));
   api.use(apiNotFound);
   app.use('/api/v1', api);
   app.use(errorHandler(ctx.logger));

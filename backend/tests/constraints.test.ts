@@ -47,6 +47,7 @@ describe('database constraints', () => {
     await expect(
       ctx.db.review.create({ data: { id: 'r0', productId: 'p1', authorDisplayName: 'A', rating: 6 } }),
     ).rejects.toThrow();
+    await ctx.db.account.create({ data: { id: 'acc1', name: 'A', email: 'a@example.com', passwordHash: 'x', securityQuestionId: 'q1', securityAnswerHash: 'x', ageConfirmedAt: new Date() } });
     await ctx.db.review.create({ data: { id: 'r1', productId: 'p1', authorAccountId: 'acc1', authorDisplayName: 'A', rating: 5 } });
     await expect(
       ctx.db.review.create({ data: { id: 'r2', productId: 'p1', authorAccountId: 'acc1', authorDisplayName: 'A', rating: 4 } }),
@@ -54,6 +55,11 @@ describe('database constraints', () => {
     // Seeded reviews (no account) may repeat.
     await ctx.db.review.create({ data: { id: 'r3', productId: 'p1', authorDisplayName: 'S', rating: 4, seeded: true } });
     await ctx.db.review.create({ data: { id: 'r4', productId: 'p1', authorDisplayName: 'S', rating: 3, seeded: true } });
+  });
+  it('rejects an account with neither email nor phone (spec §4.3)', async () => {
+    await expect(
+      ctx.db.account.create({ data: { id: 'acc2', name: 'B', passwordHash: 'x', securityQuestionId: 'q1', securityAnswerHash: 'x', ageConfirmedAt: new Date() } }),
+    ).rejects.toThrow();
   });
   it('enforces unique slugs among siblings', async () => {
     await expect(

@@ -2,17 +2,33 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api-client';
 import { deviceStore, useDevice } from '../lib/device-store';
+import { queryClient } from '../lib/query';
+import { isAuthenticated, useSession } from './session';
 
-/** Recent searches on the device (SRC-009 guest part): de-duplicated case-insensitively, newest first, ≤ 10. */
+/**
+ * Recent searches (SRC-009): on the device for guests, on the account for customers.
+ * De-duplicated case-insensitively, newest first, at most 10.
+ */
 export const RECENT_MAX = 10;
+const recentKey = ['recent-searches'] as const;
+const EMPTY: string[] = [];
 
 export function useRecentSearches(): string[] {
-  return useDevice((d) => d.recentSearches);
+  const authed = !!useSession().data?.authenticated;
+  const device = useDevice((d) => d.recentSearches);
+  const account = useQuery({ queryKey: recentKey, queryFn: () => api<{ terms: string[] }>('/search/recent'), enabled: authed, staleTime: 60_000 });
+  return authed ? (account.data?.terms ?? EMPTY) : device;
 }
 
 export function addRecentSearch(term: string) {
   const t = term.trim().slice(0, 100);
   if (!t) return;
+  if (isAuthenticated()) {
+    void api<{ terms: string[] }>('/search/recent', { method: 'POST', body: { term: t } })
+      .then((r) => queryClient.setQueryData(recentKey, r))
+      .catch(() => undefined);
+    return;
+  }
   deviceStore.update((d) => ({
     ...d,
     recentSearches: [t, ...d.recentSearches.filter((x) => x.toLowerCase() !== t.toLowerCase())].slice(0, RECENT_MAX),
@@ -20,6 +36,11 @@ export function addRecentSearch(term: string) {
 }
 
 export function clearRecentSearches() {
+  if (isAuthenticated()) {
+    queryClient.setQueryData(recentKey, { terms: [] });
+    void api('/search/recent', { method: 'DELETE' }).catch(() => undefined);
+    return;
+  }
   deviceStore.update((d) => ({ ...d, recentSearches: [] }));
 }
 
