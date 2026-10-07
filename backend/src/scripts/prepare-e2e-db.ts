@@ -24,11 +24,11 @@ const db = await createDb(`file:${target}`);
 await db.account.deleteMany();
 await db.authThrottle.deleteMany();
 await db.rateLimitBucket.deleteMany();
-// Short simulator timers so E2E can follow orders to delivery (plan §10): 2 s steps, 8 s handover window,
+// Short simulator timers so E2E can follow orders to delivery (plan §10): 4 s steps (long enough to cancel before Shipped), 8 s handover window,
 // 60 s payment retry window.
 const settings: Record<string, unknown> = {
   'rateLimit.perMinute': 10_000,
-  'sim.statusStepIntervalMs': 2_000,
+  'sim.statusStepIntervalMs': 4_000,
   'sim.deliveryHandoverWindowMs': 8_000,
   'sim.paymentRetryWindowMs': 60_000,
 };

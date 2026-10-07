@@ -8,6 +8,7 @@ import { accountId, requireAuth } from '../middleware/session.js';
 import { istDate } from '../../domain/time.js';
 import { attemptView, cancelPendingOrder, orderPaymentQuote, pay, retryPayment, setCheckoutPayment } from '../../services/payment.js';
 import { listOrders, markOrderSeen, orderDetail } from '../../services/orders/view.js';
+import { CANCELLATION_REASONS, cancelLine, cancelPreview } from '../../services/orders/cancellation.js';
 import { confirmDelivery, rejectDelivery } from '../../services/orders/fulfilment.js';
 import { otpSchema } from '@app/shared';
 
@@ -48,6 +49,18 @@ export function paymentsRouter(ctx: AppContext): Router {
     await rejectDelivery(ctx, accountId(req), pid(req));
     res.json(await orderDetail(ctx, accountId(req), pid(req)));
   }));
+  // Cancellation (CNL-001…005) and refund preview (spec §11.2 GetRefundPreview).
+  const lineParams = validate(z.object({ id: z.uuid(), lineId: z.uuid() }), 'params');
+  const lid = (req: { params: Record<string, unknown> }) => String(req.params['lineId']);
+  r.get('/orders/:id/lines/:lineId/cancel-preview', requireAuth, noStore, lineParams, handler(async (req, res) =>
+    res.json(await cancelPreview(ctx, accountId(req), pid(req), lid(req)))));
+  r.post('/orders/:id/lines/:lineId/cancel', requireAuth, lineParams, idempotent(ctx),
+    validate(z.object({ reason: z.enum(CANCELLATION_REASONS, { error: 'Choose a reason' }), comment: z.string().trim().max(500).optional() })),
+    handler(async (req, res) => {
+      const b = req.body as { reason: string; comment?: string };
+      await cancelLine(ctx, accountId(req), pid(req), lid(req), b.reason, b.comment || null);
+      res.json(await orderDetail(ctx, accountId(req), pid(req)));
+    }));
   r.get('/orders/:id', requireAuth, noStore, id, handler(async (req, res) => res.json(await orderDetail(ctx, accountId(req), pid(req)))));
   r.post('/orders/:id/payment-quote', requireAuth, id, validate(paymentQuoteSelectionSchema), handler(async (req, res) =>
     res.json(await orderPaymentQuote(ctx, accountId(req), pid(req), req.body as Sel))));

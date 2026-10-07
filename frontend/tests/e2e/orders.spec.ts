@@ -12,7 +12,7 @@ test.describe('orders, fulfilment and the delivery simulator (S16)', () => {
     await expect(page.getByRole('link', { name: new RegExp(`Order ${orderNumber}`) })).toBeVisible();
     await page.getByRole('link', { name: new RegExp(`Order ${orderNumber}`) }).click();
     await expect(page).toHaveURL(new RegExp(`/account/orders/${orderId}$`));
-    await expect(page.getByRole('heading', { name: 'Delivery simulator (demo)' })).toBeVisible({ timeout: 45_000 });
+    await expect(page.getByRole('heading', { name: 'Delivery simulator (demo)' })).toBeVisible({ timeout: 60_000 });
     await expect(page.getByText('Share this OTP with the delivery person to receive your order.')).toBeVisible();
     await expect(page.getByRole('region', { name: 'Tracking' })).toContainText(/TRK[A-Z0-9]{10}/);
     const otp = (await page.getByRole('region', { name: 'Your delivery OTP' }).locator('.tabular').innerText()).trim();
@@ -31,7 +31,7 @@ test.describe('orders, fulfilment and the delivery simulator (S16)', () => {
   test('UF-09: no action → Delivery Attempt Failed → Out for Delivery again → Returned to Origin (DLV-006)', async ({ page }) => {
     const { orderId } = await placedCodOrder(page);
     await page.goto(`/account/orders/${orderId}`);
-    await expect(page.getByText('Attempt 1 of 2')).toBeVisible({ timeout: 45_000 });
+    await expect(page.getByText('Attempt 1 of 2')).toBeVisible({ timeout: 60_000 });
     await expect(page.getByText('Attempt 2 of 2')).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText('Returned to Origin').first()).toBeVisible({ timeout: 30_000 });
     await expect(page.getByRole('heading', { name: 'Delivery simulator (demo)' })).toBeHidden();
@@ -40,7 +40,7 @@ test.describe('orders, fulfilment and the delivery simulator (S16)', () => {
   test('Customer rejected parcel asks for confirmation → Rejected at Delivery (DLV-005)', async ({ page }) => {
     const { orderId } = await placedCodOrder(page);
     await page.goto(`/account/orders/${orderId}`);
-    await page.getByRole('button', { name: 'Customer rejected parcel' }).click({ timeout: 45_000 });
+    await page.getByRole('button', { name: 'Customer rejected parcel' }).click({ timeout: 60_000 });
     const dialog = page.getByRole('dialog', { name: 'Customer rejected the parcel?' });
     await dialog.getByRole('button', { name: 'Reject parcel' }).click();
     await expect(page.getByText('Rejected at Delivery').first()).toBeVisible();

@@ -28,7 +28,10 @@ export interface OrderDetail {
   contactPhone: string;
   address: { recipientName: string; oneLine: string; recipientPhone: string; label: string };
   expectedDelivery: string | null;
-  lines: { id: string; name: string; brand: string; size: string; href: string; image: { url: string; alt: string } | null; quantity: number; unitPrice: Money; lineNetPaid: Money; lineState: string; returnable: boolean }[];
+  lines: {
+    id: string; name: string; brand: string; size: string; href: string; image: { url: string; alt: string } | null; quantity: number; unitPrice: Money; lineNetPaid: Money;
+    lineState: string; returnable: boolean; canCancel: boolean; cancelled: { at: string | null; reason: string | null } | null;
+  }[];
   amounts: { totalMrp: Money; discountOnMrp: Money; couponDiscount: Money; couponCode: string | null; bankOfferDiscount: Money; deliveryCharge: Money; total: Money; taxText: string };
   payment: { methods: { source: string; label: string; amount: Money; status: string }[]; paidOnline: Money; giftCard: Money; credits: Money; codDue: Money | null; codCollected: Money | null };
   retry: { endsAt: string; minutesLeft: number; canRetry: boolean } | null;
@@ -39,6 +42,31 @@ export interface OrderDetail {
   deliveredAt: string | null;
   progress: { steps: { status: string; label: string }[]; current: number };
   hasUnseenUpdate: boolean;
+  refunds: RefundView[];
+}
+
+export interface RefundView {
+  id: string;
+  trigger: string;
+  triggerLabel: string;
+  amount: Money;
+  includesDeliveryCharge: boolean;
+  destinations: { label: string; amount: Money }[];
+  summary: string;
+  status: 'initiated' | 'refunded';
+  statusLabel: string;
+  initiatedAt: string;
+  refundedAt: string | null;
+}
+
+export interface CancelPreview {
+  line: { id: string; name: string; brand: string; size: string; image: { url: string; alt: string } | null; quantity: number; lineNetPaid: Money };
+  lastLine: boolean;
+  includesDeliveryCharge: boolean;
+  deliveryCharge: Money;
+  refund: { amount: Money; destinations: { label: string; amount: Money }[] };
+  codNoLongerDue: Money | null;
+  reasons: string[];
 }
 
 const TERMINAL = ['DELIVERED', 'FAILED', 'CANCELLED', 'REJECTED_AT_DELIVERY', 'RETURNED_TO_ORIGIN'];
@@ -48,7 +76,8 @@ export function useOrder(id: string) {
   return useQuery({
     queryKey: orderKey(id),
     queryFn: () => api<OrderDetail>(`/orders/${id}`),
-    refetchInterval: (q) => (q.state.data && !TERMINAL.includes(q.state.data.status) ? 3000 : false),
+    // Keep polling while the order moves, or while a refund is still being processed.
+    refetchInterval: (q) => (q.state.data && (!TERMINAL.includes(q.state.data.status) || q.state.data.refunds.some((r) => r.status === 'initiated')) ? 3000 : false),
     refetchOnWindowFocus: true,
   });
 }

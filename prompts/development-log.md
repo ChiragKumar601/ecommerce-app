@@ -632,3 +632,32 @@ A short chronological record of the important steps, decisions and changes on th
     - Image unit tests now cover: relevant-only (otherwise the placeholder), unsuitable titles never used, approval labels, and no borrowing for innerwear.
     - The login timing test is now measured up to 3 times, so CPU contention from parallel test files can't fail it.
     - lint and typecheck pass; backend 290, E2E 239 passed / 16 skipped.
+
+## 2026-10-07 — Owner request: complete Stages 17 and 18
+
+115. The owner asked for Stages 17 and 18. The image cleanup in progress was finished and committed first (`2d073f4`) so it stays separate from the stage commits.
+
+## 2026-10-07 — Stage 17: Refunds and cancellation (complete)
+
+116. **Backend:**
+    - Migration M10: `Refund`, `RefundAllocation` (each row remembers the source it came back from, so later refunds respect the per-source caps), plus line cancellation fields and `refundedUnits` on `OrderLine`.
+    - **Migration note:** the dev servers in watch mode kept SQLite briefly locked, and Prisma's migrator doesn't wait. The SQL was applied with a busy timeout and recorded in `_prisma_migrations`. The `OrderLine` change is plain `ADD COLUMN`s, which keep existing rows.
+    - `orders/refunds.ts`:
+      - captured sources (uncollected COD excluded)
+      - the RFD-007 cap
+      - allocation card/UPI → gift card → credits → collected COD, using the pure `allocateRefund`
+      - refunds start in Refund Initiated
+      - `completeRefunds` (5 s worker job) moves them to Refunded after one step: credits get `refund_credit`; an active, unexpired gift card is credited back, otherwise credits with "Gift card expired — refunded as credits"; card and UPI are display-only
+      - whole-order refunds (lines plus delivery) for Rejected at Delivery and Returned to Origin, now wired into fulfilment
+    - `orders/cancellation.ts`:
+      - cancel preview and cancel a whole line while Placed, Confirmed or Packed (reasons per CNL-005; idempotent)
+      - the line's stock comes back, and a refund is created only if something was captured
+      - on COD, the uncovered part just reduces the amount due
+      - the last line cancels the order (`ALL_LINES_CANCELLED`) and refunds the delivery charge
+      - serialised with the scheduler (EC-12)
+    - The order view adds `canCancel`, the cancelled reason and the refunds (RFD-006).
+117. **Frontend:**
+    - "Cancel item" per eligible line opens `CancelDialog`: item, reason (required), optional comment, then a review with the refund amount and destinations, the delivery-charge note on the last item, and "pay ₹X less on delivery" for COD.
+    - `RefundList` on the order page shows the amount, trigger, destinations and Initiated/Refunded with timestamps. The page keeps polling while a refund is processing.
+    - E2E simulator steps changed from 2 s to 4 s, so there's time to cancel before an order ships.
+118. **Tests:** lint and typecheck pass; shared 26, backend 298 (+8: WX-3 to ₹679.90 → card with stock back and an idempotent cancel; WX-4 totalling ₹4,762 = ₹4,262 card + ₹500 credits with credits ledgered at Refunded; refused from Shipped and the EC-12 race; partial COD cancellation reducing the amount due; UF-08 whole-order refund with delivery; EC-09 wallet + COD; RFD-004 expired gift card → credits; ownership); RFD-007 asserted after each; frontend 19; E2E 242 passed / 16 skipped, including UF-10.

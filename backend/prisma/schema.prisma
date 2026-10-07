@@ -681,6 +681,7 @@ model Order {
   attempts             PaymentAttempt[]
   allocations          PaymentAllocation[]
   events               OrderStatusEvent[]
+  refunds              Refund[]
 
   @@index([accountId, createdAt])
   @@index([status, retryEndsAt])
@@ -704,6 +705,11 @@ model OrderLine {
   taxRatePercent     Int
   taxPortion         Int
   lineState          String    @default("active") // 'active' | 'cancelled'
+  cancelledAt        DateTime?
+  cancelReason       String?
+  cancelComment      String?
+  /// Units refunded so far (cancellation or returns), so per-unit shares are taken in order (RFD-001).
+  refundedUnits      Int       @default(0)
   returnable         Boolean
   returnWindowEndsAt DateTime?
   position           Int
@@ -763,4 +769,42 @@ model OrderStatusEvent {
   note       String?
 
   @@index([orderId, at])
+}
+
+// ───────────────────────── M10 refunds (Stage 17) ─────────────────────────
+
+/// A refund (spec §4.7, §6.20). Created in `initiated`; becomes `refunded` one step later (RFD-005).
+model Refund {
+  id                     String              @id
+  orderId                String
+  order                  Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  trigger                String // 'cancellation' | 'return' | 'rejected_at_delivery' | 'returned_to_origin'
+  amount                 Int
+  includesDeliveryCharge Boolean             @default(false)
+  orderLineId            String?
+  units                  Int?
+  returnRequestId        String?
+  status                 String // 'initiated' | 'refunded'
+  createdAt              DateTime
+  completeAt             DateTime
+  completedAt            DateTime?
+  allocations            RefundAllocation[]
+
+  @@index([status, completeAt])
+  @@index([orderId])
+}
+
+/// Where a refund goes (RFD-002, RFD-004). `source` is the captured source it is taken from.
+model RefundAllocation {
+  id                String  @id
+  refundId          String
+  refund            Refund  @relation(fields: [refundId], references: [id], onDelete: Cascade)
+  /// The captured source this amount comes back from: 'card' | 'upi' | 'gift_card' | 'credits' | 'cod'.
+  source            String
+  /// Where it goes: 'card' | 'upi' | 'gift_card' | 'credits'.
+  destination       String
+  amount            Int
+  accountGiftCardId String?
+  label             String
+  note              String?
 }

@@ -6,6 +6,7 @@ import { MS } from '../../domain/time.js';
 import type { Order } from '../../generated/prisma/client.js';
 import { invalidateStock } from '../catalogue/snapshot.js';
 import { simSettings, transition, withOrder, type SimSettings, type Tx } from './core.js';
+import { wholeOrderRefund } from './refunds.js';
 
 // Fulfilment simulator and the Delivery simulator (spec §6.16, §6.17, §7.1; plan S16.1, S16.3).
 
@@ -26,8 +27,8 @@ async function endAttempt(ctx: AppContext, tx: Tx, order: Order, sim: SimSetting
   const now = ctx.clock.now();
   if (order.deliveryAttempt >= 2) {
     await transition(tx, order, 'HANDOVER_EXPIRED', 'scheduler', now, { nextTransitionAt: null, hasUnseenUpdate: true }, note);
-    // The whole-order refund (RFD-003) is created here once refunds exist (Stage 17).
     await restockAndCloseCod(ctx, tx, order);
+    await wholeOrderRefund(ctx, tx, order, 'returned_to_origin', sim);
   } else {
     await transition(tx, order, 'HANDOVER_EXPIRED', 'scheduler', now, { nextTransitionAt: new Date(now.getTime() + sim.stepMs), hasUnseenUpdate: true }, note);
   }
@@ -136,10 +137,11 @@ export async function confirmDelivery(ctx: AppContext, accountId: string, orderI
 /** Delivery simulator — Customer rejected parcel (DLV-005): restock, whole-order refund, COD no longer due. */
 export async function rejectDelivery(ctx: AppContext, accountId: string, orderId: string) {
   await ownOutForDelivery(ctx, accountId, orderId);
+  const sim = await simSettings(ctx);
   await withOrder(ctx, orderId, async (tx, o) => {
     if (o.status !== 'OUT_FOR_DELIVERY') throw new AppError('ACTION_NOT_ALLOWED');
     await transition(tx, o, 'PARCEL_REJECTED', 'delivery_simulator', ctx.clock.now(), { nextTransitionAt: null, hasUnseenUpdate: true });
-    // The whole-order refund (RFD-003) is created here once refunds exist (Stage 17).
     await restockAndCloseCod(ctx, tx, o);
+    await wholeOrderRefund(ctx, tx, o, 'rejected_at_delivery', sim);
   });
 }

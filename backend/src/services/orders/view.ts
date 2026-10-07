@@ -5,6 +5,7 @@ import { money } from '../../domain/money.js';
 import type { Quote } from '../../domain/pricing/types.js';
 import { formatIstDate, formatIstDateTime, istDate } from '../../domain/time.js';
 import type { Order, OrderLine, PaymentAllocation } from '../../generated/prisma/client.js';
+import { refundViews } from './refunds.js';
 
 // Order reads (ORD-002, ORD-003, PAY-013). Account-scoped: someone else's order is NOT_FOUND (ORD-007).
 
@@ -85,6 +86,9 @@ export async function orderDetail(ctx: AppContext, accountId: string, id: string
     lines: o.lines.map((l) => ({
       id: l.id, variantId: l.variantId, productId: l.productId, ...(l.productSnapshot as unknown as Snapshot), quantity: l.quantity,
       unitPrice: money(l.unitSellingPrice), unitMrp: money(l.unitMrp), lineNetPaid: money(l.lineNetPaid), lineState: l.lineState, returnable: l.returnable,
+      // CNL-001: Cancel is offered only while Placed, Confirmed or Packed.
+      canCancel: l.lineState === 'active' && ['PLACED', 'CONFIRMED', 'PACKED'].includes(status),
+      cancelled: l.lineState === 'cancelled' ? { at: l.cancelledAt ? formatIstDateTime(l.cancelledAt) : null, reason: l.cancelReason } : null,
     })),
     amounts: {
       totalMrp: money(q.totalMrp), discountOnMrp: money(q.discountOnMrp), couponDiscount: money(q.couponDiscount), couponCode: o.couponCode,
@@ -112,6 +116,7 @@ export async function orderDetail(ctx: AppContext, accountId: string, id: string
       current: DELIVERY_STEPS.indexOf(status === 'DELIVERY_ATTEMPT_FAILED' ? 'OUT_FOR_DELIVERY' : status),
     },
     hasUnseenUpdate: o.hasUnseenUpdate,
+    refunds: await refundViews(ctx, o.id),
   };
 }
 

@@ -49,6 +49,24 @@ export function orderHelpers(t: T) {
     }
     return att.order.id;
   }
+  /**
+   * The spec §15 worked-example order (WX-1): T-shirt ₹999 × 2, sneakers ₹2,799, serum ₹719 with WELCOME10,
+   * ₹500 credits and an HDFC credit card that always succeeds. Returns the order id.
+   */
+  async function placeWx1Order(a: Agent): Promise<string> {
+    for (const [v, q] of [['p-tee-v0', 2], ['p-snk-v0', 1], ['p-ser-v0', 1]] as const) ok(await send(a, 'post', '/bag/lines', { variantId: v, quantity: q }));
+    ok(await send(a, 'post', '/bag/coupon', { code: 'WELCOME10' }));
+    const c = ok<{ id: string }>(await send(a, 'post', '/checkout', { source: 'bag' }), 201);
+    ok(await send(a, 'put', `/checkout/${c.id}/step`, { step: 'payment' }));
+    const v = ok<{ quoteId: string; quote: { total: { paise: number } } }>(await send(a, 'put', `/checkout/${c.id}/payment-selection`, { useCredits: true, method: 'card', cardBin: '40000001' }));
+    expect(v.quote.total.paise).toBe(476200);
+    const att = ok<{ order: { id: string } }>(await send(a, 'post', `/checkout/${c.id}/pay`, {
+      quoteId: v.quoteId, payment: { useCredits: true, method: 'card', newCard: { number: '4000000110000009', nameOnCard: 'Order Tester', expiry: '12/30', cvv: '123', save: false } },
+    }), 201);
+    t.clock.advance(3_100);
+    await resolvePaymentAttempts(t.ctx);
+    return att.order.id;
+  }
   const order = (a: Agent, id: string) => a.get(`/api/v1/orders/${id}`).then((r) => r.body);
-  return { send, ok, customer, placeOrder, order };
+  return { send, ok, customer, placeOrder, placeWx1Order, order };
 }

@@ -1,5 +1,6 @@
 import type { AppContext } from '../../api/context.js';
 import { advanceOrders, expireHandovers } from '../../services/orders/fulfilment.js';
+import { completeRefunds } from '../../services/orders/refunds.js';
 import { expirePayments, resolvePaymentAttempts } from '../../services/payment.js';
 
 /** A scheduled job: safe to run twice (API-007), because every transition checks the current state. */
@@ -17,4 +18,6 @@ export const JOBS: Job[] = [
   // Order steps and handover windows are minutes long; a 2 s tick keeps them close to schedule (ORD-004, DLV-006).
   { name: 'advanceOrders', everyMs: 2000, run: advanceOrders },
   { name: 'expireHandovers', everyMs: 2000, run: expireHandovers },
+  // Refund Initiated → Refunded after one step (RFD-005).
+  { name: 'completeRefunds', everyMs: 5000, run: completeRefunds },
 ];

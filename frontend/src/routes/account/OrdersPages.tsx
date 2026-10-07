@@ -3,6 +3,7 @@ import { Check, ChevronLeft, ChevronRight, KeyRound, Package, PackageX, Truck } 
 import { useEffect, useId, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { Badge, Button, ConfirmDialog, EmptyState, ErrorState, InlineMessage, Input, PageLayout, Skeleton } from '../../components/ui';
+import { CancelDialog, RefundList } from '../../components/orders/CancelDialog';
 import { orderKey, useOrder, useOrders, type OrderDetail } from '../../features/orders';
 import { api, ApiError, errorMessage } from '../../lib/api-client';
 import { cn } from '../../lib/cn';
@@ -159,6 +160,7 @@ function DeliverySimulatorPanel({ o }: { o: OrderDetail }) {
 export function OrderDetailPage() {
   const { id = '' } = useParams();
   const q = useOrder(id);
+  const [cancelling, setCancelling] = useState<string | null>(null);
   const unseen = q.data?.hasUnseenUpdate;
   // Opening an order clears its unseen-update dot (PRF-007).
   useEffect(() => {
@@ -223,7 +225,8 @@ export function OrderDetailPage() {
                   <p className="font-bold">{l.brand}</p>
                   <Link to={l.href} className="line-clamp-1 text-ink-soft hover:underline">{l.name}</Link>
                   <p className="text-ink-muted">Size {l.size} · Qty {l.quantity}</p>
-                  {l.lineState === 'cancelled' && <Badge tone="danger" className="mt-1">Cancelled</Badge>}
+                  {l.cancelled && <p className="mt-1"><Badge tone="danger">Cancelled</Badge>{l.cancelled.reason && <span className="ml-2 text-caption text-ink-muted">{l.cancelled.reason}</span>}</p>}
+                  {l.canCancel && <Button size="sm" variant="secondary" className="mt-2" onClick={() => setCancelling(l.id)}>Cancel item</Button>}
                   {!l.returnable && o.status === 'DELIVERED' && <p className="mt-1 text-caption text-ink-muted">Not returnable</p>}
                 </div>
                 <p className="tabular text-small font-semibold">{l.lineNetPaid.display}</p>
@@ -231,6 +234,8 @@ export function OrderDetailPage() {
             ))}
           </ul>
         </section>
+
+        <RefundList refunds={o.refunds} />
 
         <div className="grid gap-4 sm:grid-cols-2">
           <section aria-label="Delivery address" className="rounded-lg border border-line bg-surface p-5 text-small">
@@ -258,6 +263,7 @@ export function OrderDetailPage() {
           </section>
         </div>
       </div>
+      {cancelling && <CancelDialog orderId={o.id} lineId={cancelling} onClose={() => setCancelling(null)} />}
     </PageLayout>
   );
 }
