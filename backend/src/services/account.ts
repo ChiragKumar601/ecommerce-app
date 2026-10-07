@@ -95,9 +95,10 @@ export async function getCredits(ctx: AppContext, accountId: string, page: numbe
   };
 }
 
-/** Order numbers for links in the ledgers (orders arrive in S15). */
-async function orderNumbers(_ctx: AppContext, _ids: string[]): Promise<Map<string, string>> {
-  return new Map();
+/** Order numbers for links in the ledgers. */
+async function orderNumbers(ctx: AppContext, ids: string[]): Promise<Map<string, string>> {
+  const rows = await ctx.db.order.findMany({ where: { id: { in: ids } }, select: { id: true, orderNumber: true } });
+  return new Map(rows.map((r) => [r.id, r.orderNumber]));
 }
 
 // ── Gift cards (PRF-004, §7.6) ───────────────────────────────────────────────
@@ -228,9 +229,9 @@ export async function setDefaultCard(ctx: AppContext, accountId: string, id: str
 
 // ── Support requests (PRF-006, PRV-002) ──────────────────────────────────────
 
-/** Whether an order referenced by a support request belongs to the customer (orders arrive in S15). */
-async function ownsOrder(_ctx: AppContext, _accountId: string, _orderId: string): Promise<boolean> {
-  return false;
+/** Whether an order referenced by a support request belongs to the customer (AUTHZ-001). */
+async function ownsOrder(ctx: AppContext, accountId: string, orderId: string): Promise<boolean> {
+  return !!(await ctx.db.order.findFirst({ where: { id: orderId, accountId }, select: { id: true } }));
 }
 
 export async function createSupportRequest(ctx: AppContext, accountId: string, d: z.output<typeof supportRequestSchema>) {

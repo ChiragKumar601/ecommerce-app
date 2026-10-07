@@ -44,9 +44,15 @@ export interface PendingOrderSummary {
   minutesLeft: number;
 }
 
-/** The customer's Awaiting Payment order, if any. Orders arrive in Stage 15. */
-export async function pendingOrderSummary(_ctx: AppContext, _accountId: string): Promise<PendingOrderSummary | null> {
-  return null;
+/** The customer's Awaiting Payment order still inside its retry window, if any (R-09). */
+export async function pendingOrderSummary(ctx: AppContext, accountId: string): Promise<PendingOrderSummary | null> {
+  const o = await ctx.db.order.findFirst({ where: { accountId, status: 'AWAITING_PAYMENT' } });
+  if (!o) return null;
+  const now = ctx.clock.now();
+  return {
+    orderId: o.id, orderNumber: o.orderNumber, amount: money(o.total).display, retryEndsAt: o.retryEndsAt.toISOString(),
+    minutesLeft: Math.max(0, Math.ceil((o.retryEndsAt.getTime() - now.getTime()) / 60_000)),
+  };
 }
 
 // ── Pricing ──────────────────────────────────────────────────────────────────

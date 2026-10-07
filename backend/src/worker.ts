@@ -1,20 +1,31 @@
-import { loadEnv } from './config/env.js';
+import { createContext } from './api/bootstrap.js';
+import { JOBS } from './worker/jobs/index.js';
 
-// Worker process (plan §7.5): runs scheduled simulator jobs. Jobs are added from Stage 15 onwards.
-const env = loadEnv();
-let ticks = 0;
+// Worker process (plan §7.5): runs the simulator jobs on their own timers. Each job run is
+// awaited before the next one of the same job starts, so a job never overlaps itself.
+const ctx = await createContext();
+ctx.settings.watch();
+const timers = new Map<string, NodeJS.Timeout>();
+let stopping = false;
 
-function tick(): void {
-  ticks += 1;
-  console.log(`[worker] tick ${ticks} at ${new Date().toISOString()}`);
+for (const job of JOBS) {
+  const loop = async () => {
+    if (stopping) return;
+    try {
+      const n = await job.run(ctx);
+      if (n > 0) ctx.logger.log('info', `[worker] ${job.name}`, { applied: n });
+    } catch (err) {
+      ctx.logger.log('error', `[worker] ${job.name} failed`, { error: String(err) });
+    }
+    if (!stopping) timers.set(job.name, setTimeout(() => void loop(), job.everyMs));
+  };
+  void loop();
 }
-
-console.log(`[worker] started, tick every ${env.WORKER_TICK_MS} ms`);
-tick();
-const timer = setInterval(tick, env.WORKER_TICK_MS);
+console.log(`[worker] started with ${JOBS.length} jobs`);
 
 function shutdown(): void {
-  clearInterval(timer);
+  stopping = true;
+  for (const t of timers.values()) clearTimeout(t);
   console.log('[worker] stopped');
   process.exit(0);
 }

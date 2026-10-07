@@ -5,3 +5,4 @@ export * from './auth.ts';
 export * from './bag.ts';
 export * from './account.ts';
 export * from './address.ts';
+export * from './payment.ts';

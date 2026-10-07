@@ -400,6 +400,7 @@ model Account {
   supportRequests             SupportRequest[]
   addresses                   Address[]
   checkouts                   CheckoutSession[]
+  orders                      Order[]
   deletionRequestedAt         DateTime?
 }
 
@@ -639,4 +640,127 @@ model Quote {
   createdAt  DateTime
 
   @@index([createdAt])
+}
+
+// ───────────────────────── M9 orders & payment (Stage 15) ─────────────────────────
+
+/// An order (spec §4.7). Prices are locked at Pay (D-39). `version` is bumped first in every write
+/// transaction on the order, which serialises customer actions and scheduler transitions (API-008).
+model Order {
+  id                   String               @id
+  orderNumber          String               @unique
+  accountId            String
+  account              Account              @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  status               String
+  version              Int                  @default(0)
+  source               String // 'bag' | 'buy_now'
+  createdAt            DateTime
+  placedAt             DateTime?
+  deliveredAt          DateTime?
+  /// End of the 15-minute retry window (PAY-012).
+  retryEndsAt          DateTime
+  addressSnapshot      Json
+  contactPhone         String
+  /// The full quote at Pay, with the coupon and bank-offer state.
+  priceSnapshot        Json
+  couponCode           String?
+  bankOfferApplied     Boolean              @default(false)
+  total                Int
+  deliveryCharge       Int
+  zone                 String
+  expectedDeliveryDate String // YYYY-MM-DD (ORD-005)
+  deliveryOtp          String?
+  deliveryAttempt      Int                  @default(0)
+  otpFailures          Int                  @default(0)
+  courierName          String?
+  trackingId           String?
+  /// Next scheduled automatic transition (order steps, handover window end) (S16).
+  nextTransitionAt     DateTime?
+  hasUnseenUpdate      Boolean              @default(false)
+  lines                OrderLine[]
+  attempts             PaymentAttempt[]
+  allocations          PaymentAllocation[]
+  events               OrderStatusEvent[]
+
+  @@index([accountId, createdAt])
+  @@index([status, retryEndsAt])
+  @@index([status, nextTransitionAt])
+}
+
+model OrderLine {
+  id                 String    @id
+  orderId            String
+  order              Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId          String
+  productId          String
+  /// name, brand, size, image, href at Pay.
+  productSnapshot    Json
+  quantity           Int
+  unitMrp            Int
+  unitSellingPrice   Int
+  couponShare        Int
+  bankOfferShare     Int
+  lineNetPaid        Int
+  taxRatePercent     Int
+  taxPortion         Int
+  lineState          String    @default("active") // 'active' | 'cancelled'
+  returnable         Boolean
+  returnWindowEndsAt DateTime?
+  position           Int
+
+  @@index([orderId])
+}
+
+/// One payment try. At most one `pending` per order (partial unique index). All four outcomes are final.
+model PaymentAttempt {
+  id               String    @id
+  orderId          String
+  order            Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method           String // 'card' | 'upi' | 'cod' | 'none'
+  /// "Visa •••• 0009" or the UPI ID; never a full card number (SEC-003).
+  instrumentLabel  String?
+  testCardRef      String?
+  upiId            String?
+  amount           Int
+  outcome          String // 'pending' | 'success' | 'failure' | 'cancelled' | 'timed_out'
+  /// The outcome decided at Pay (forced by a test value, or weighted random); revealed at resolveAt.
+  decidedOutcome   String
+  forcedByTestValue Boolean  @default(false)
+  /// Card to save once the attempt is final (PAY-014): masked fields only.
+  saveCard         Json?
+  bankOfferDiscount Int      @default(0)
+  createdAt        DateTime
+  resolveAt        DateTime
+  resolvedAt       DateTime?
+
+  @@index([outcome, resolveAt])
+  @@index([orderId])
+}
+
+model PaymentAllocation {
+  id                String   @id
+  orderId           String
+  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  source            String // 'card' | 'upi' | 'cod' | 'gift_card' | 'credits'
+  amount            Int
+  accountGiftCardId String?
+  /// card / UPI label for refunds and the payment breakdown.
+  label             String?
+  status            String // 'reserved' | 'captured' | 'released' | 'cod_due' | 'cod_collected'
+  createdAt         DateTime
+
+  @@index([orderId])
+}
+
+model OrderStatusEvent {
+  id         String   @id
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  fromStatus String?
+  toStatus   String
+  at         DateTime
+  actor      String // 'customer' | 'scheduler' | 'delivery_simulator' | 'system'
+  note       String?
+
+  @@index([orderId, at])
 }

@@ -474,3 +474,36 @@ A short chronological record of the important steps, decisions and changes on th
     - New addresses at checkout now default the recipient phone to the number just entered (stale session data).
     - The login-timing test now compares lower quartiles over 16 samples, so CPU contention from parallel test files doesn't fail it. It was stable over 3 full runs.
 96. **Tests:** lint and typecheck pass; backend 266 (+8 checkout: start and stored quote, EC-02, EC-03, CHECKOUT_BLOCKED, Buy Now with quantity and bag untouched, EC-14, address serviceability and step persistence with AUTHZ-002, coupon at checkout); frontend 19; E2E 212 passed / 16 viewport-skipped, including the bag → checkout flow, the unserviceable address (end of UF-14), Buy Now and UF-15.
+
+## 2026-10-07 — Stage 15: Payment and order creation (complete)
+
+97. **Backend:**
+    - Migration M9: `Order`, `OrderLine`, `PaymentAttempt`, `PaymentAllocation` and `OrderStatusEvent`, with partial unique indexes for one Awaiting Payment order per account and one pending attempt per order.
+    - `orders/core.ts`:
+      - `writeTx` retries busy errors
+      - `withOrder` takes the write lock first by bumping `version`, then re-reads (API-008)
+      - order number (ORD-001)
+      - state-machine transitions with events and actors
+      - `placeOrder`: commit stock, capture the wallet, OTP, expected date, schedule fulfilment, remove the bought lines from a bag checkout
+      - `releaseOrder` (release holds, reverse reservations)
+    - **Pay** (`POST /checkout/:id/pay`, idempotent) runs in this order:
+      1. pending-order guard
+      2. instrument recognition: test cards, saved cards with an expiry check, UPI test IDs (`NOT_TEST_CARD`, `CARD_EXPIRED`)
+      3. stock and activity check
+      4. re-quote and diff against the shown `quoteId` → `QUOTE_CHANGED`; a removed coupon or unusable gift card leaves the selection (EC-07, EC-24)
+      5. COD and method rules
+      6. one transaction: order, conditional holds in variant order (`OUT_OF_STOCK` rolls everything back), line snapshots, conditional wallet reservations, and an attempt with its outcome decided up front (forced or weighted) and revealed 2–3 s later. r = 0 and COD are Placed at once.
+    - **Payment selection** re-quotes on every change. A new card is identified by its first 8 digits (so the HDFC offer can be shown without sending the full number, SEC-003).
+    - **Retry** (`/orders/:id/payment-quote`, `/orders/:id/retry-payment`): locked lines and coupon; the bank offer is recomputed for the new card; reservations are reversed and re-reserved; `PAYMENT_IN_PROGRESS`; `ORDER_NOT_PAYABLE` outside the window (PAY-015).
+    - Cancel pending order (CNL-002) and attempt status.
+    - Worker jobs: `resolvePaymentAttempts` (1 s; success places the order; the card is saved even after a failure, PAY-014) and `expirePayments` (5 s; skips orders with a processing attempt, EC-06). The worker process now runs a job registry.
+    - Coupon use counts, credit and gift-card order links, and support-request order ownership now use real orders.
+98. **Bug fixed — database lock errors under concurrency:**
+    - **Cause:** the libSQL client hands its connection to each transaction and opens a fresh one afterwards, so the `busy_timeout` PRAGMA was lost. Concurrent writes from the API and the worker then failed immediately with SQLITE_BUSY, which the adapter reports as "Operation has timed out" (seen as random 500s in E2E).
+    - **Fix:** the busy timeout is now passed as the client's `timeout` option, so it applies to every connection. `writeTx` also retries that error.
+    - Simulator settings are now loaded before transactions, so nothing inside a transaction touches the shared client.
+99. **Frontend:**
+    - `PaymentForm`: demo warning; gift card select with inline redeem; credits switch; Card (saved cards with CVV, or a new card with "Save this card"; the bank offer previews from the card's first digits), UPI and COD (disabled above ₹10,000 with the message); the Pay label from the remainder; one idempotency key per action, reused only after a network failure; "Processing payment…" with 1 s polling; QUOTE_CHANGED change list with "Review and continue"; secrets cleared after errors.
+    - Outcome panel with Retry and the minutes left. Retry page `/orders/:id/pay` with locked items. Confirmation page (PAY-013). The pending-order dialog is now live.
+    - Playwright can show backend logs with `PW_SERVER_LOGS=1`.
+100. **Tests:** lint and typecheck pass; shared 26, backend 279 (+13 payment: WX-1 to the paise through the API, QUOTE_CHANGED with nothing persisted, two customers on the last unit (INV-006, EC-04), duplicate idempotency key (EC-05), failure → card saved → UPI retry with the offer recomputed, the 15-minute expiry reversing stock/credits/gift card and running twice safely, EC-06, UF-06 wallet only, EC-08, COD and its limit, EC-07, EC-24, NOT_TEST_CARD and pending cancel, ownership); frontend 19; E2E 224 passed / 16 viewport-skipped, including UF-04, UF-05, UF-06 and COD. Payment and confirmation checked at 360 and 1280 px.

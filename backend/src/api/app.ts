@@ -11,6 +11,7 @@ import { authRouter } from './routes/auth.js';
 import { bagRouter } from './routes/bag.js';
 import { meRouter } from './routes/me.js';
 import { checkoutRouter } from './routes/checkout.js';
+import { paymentsRouter } from './routes/payments.js';
 import { sessionMiddleware } from './middleware/session.js';
 
 /** Downloaded catalogue images (OD-11): immutable files named by content hash. */
@@ -40,6 +41,7 @@ export function createApp(ctx: AppContext): Express {
   api.use(bagRouter(ctx));
   api.use(meRouter(ctx));
   api.use(checkoutRouter(ctx));
+  api.use(paymentsRouter(ctx));
   api.use(apiNotFound);
   app.use('/api/v1', api);
   app.use(errorHandler(ctx.logger));

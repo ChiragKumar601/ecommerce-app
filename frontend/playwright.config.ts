@@ -28,6 +28,7 @@ export default defineConfig({
       command: `pnpm --dir ../backend exec tsx src/scripts/prepare-e2e-db.ts && pnpm --dir ../backend exec tsx src/server.ts`,
       url: `http://localhost:${BACKEND_PORT}/api/v1/health`,
       env: { PORT: String(BACKEND_PORT), NODE_ENV: 'test', DATABASE_URL: E2E_DB },
+      stdout: process.env['PW_SERVER_LOGS'] ? 'pipe' : 'ignore',
       reuseExistingServer: false,
       timeout: 120_000,
     },

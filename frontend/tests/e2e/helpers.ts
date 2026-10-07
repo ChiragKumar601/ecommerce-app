@@ -24,3 +24,23 @@ export async function signUpViaApi(page: Page, over: Record<string, unknown> = {
   if (r.status !== 201) throw new Error(`sign-up failed: ${r.status} ${JSON.stringify(r.body)}`);
   return { email, questionId: q.body[0]!.id };
 }
+
+/** A logged-in customer with one bag line, optionally a phone and an address. */
+export async function customerWithBag(page: Page, opts: { phone?: boolean; address?: string | false; listing?: string } = {}) {
+  const phone = opts.phone === false ? '' : `9${String(Math.floor(Math.random() * 1e9)).padStart(9, '0')}`;
+  const { email } = await signUpViaApi(page, { phone });
+  if (opts.address !== false) {
+    await apiCall(page, 'POST', '/me/addresses', {
+      recipientName: 'Test Shopper', recipientPhone: '9876543210', houseFlat: '7', streetArea: 'MG Road', city: 'Bengaluru', state: 'Karnataka', pincode: opts.address ?? '560001', labelType: 'Home',
+    });
+  }
+  // A random in-stock product and size, so parallel tests (and their stock holds) don't compete for one unit.
+  const list = await apiCall<{ items: { id: string }[] }>(page, 'GET', `/products?scope=node&node=${opts.listing ?? 'men/topwear/jackets'}&inStock=1`);
+  const pick = <T,>(xs: T[]) => xs[Math.floor(Math.random() * xs.length)]!;
+  const productId = pick(list.body.items).id;
+  const product = await apiCall<{ variants: { id: string; available: number }[] }>(page, 'GET', `/products/${productId}`);
+  const variant = pick(product.body.variants.filter((v) => v.available > 1));
+  await apiCall(page, 'POST', '/bag/lines', { variantId: variant.id });
+  return { email, variantId: variant.id, productId };
+}
+

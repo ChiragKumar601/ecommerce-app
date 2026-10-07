@@ -35,9 +35,9 @@ export async function findCoupon(ctx: AppContext, code: string): Promise<CouponD
   };
 }
 
-/** Count of the customer's Placed-or-later orders that used the coupon (PRC-002). Orders arrive in Stage 15. */
-export async function couponUses(_ctx: AppContext, _accountId: string, _code: string): Promise<number> {
-  return 0;
+/** Count of the customer's Placed-or-later orders that used the coupon (PRC-002). */
+export async function couponUses(ctx: AppContext, accountId: string, code: string): Promise<number> {
+  return ctx.db.order.count({ where: { accountId, couponCode: code, placedAt: { not: null } } });
 }
 
 /** Line data for priced items: product state, availability, tax rate (most specific node wins, R-35). */

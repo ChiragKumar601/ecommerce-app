@@ -1,21 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-import { apiCall, PASSWORD, signUpViaApi } from './helpers';
-
-/** A logged-in customer with one bag line, optionally a phone and an address. */
-export async function customerWithBag(page: Page, opts: { phone?: boolean; address?: string | false; listing?: string } = {}) {
-  const phone = opts.phone === false ? '' : `9${String(Math.floor(Math.random() * 1e9)).padStart(9, '0')}`;
-  const { email } = await signUpViaApi(page, { phone });
-  if (opts.address !== false) {
-    await apiCall(page, 'POST', '/me/addresses', {
-      recipientName: 'Test Shopper', recipientPhone: '9876543210', houseFlat: '7', streetArea: 'MG Road', city: 'Bengaluru', state: 'Karnataka', pincode: opts.address ?? '560001', labelType: 'Home',
-    });
-  }
-  const list = await apiCall<{ items: { id: string }[] }>(page, 'GET', `/products?scope=node&node=${opts.listing ?? 'men/topwear/jackets'}&inStock=1`);
-  const product = await apiCall<{ variants: { id: string; available: number }[] }>(page, 'GET', `/products/${list.body.items[0]!.id}`);
-  const variant = product.body.variants.find((v) => v.available > 0)!;
-  await apiCall(page, 'POST', '/bag/lines', { variantId: variant.id });
-  return { email, variantId: variant.id, productId: list.body.items[0]!.id };
-}
+import { expect, test } from '@playwright/test';
+import { apiCall, customerWithBag, PASSWORD } from './helpers';
 
 test.describe('checkout (S14)', () => {
   test.beforeEach(async ({ page }) => page.route(/api\.mapbox\.com/, (r) => r.abort()));

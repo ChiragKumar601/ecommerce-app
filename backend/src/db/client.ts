@@ -10,8 +10,12 @@ export function toLibsqlUrl(databaseUrl: string): string {
  * Creates a Prisma client on the SQLite file and applies the connection pragmas from plan §6.1:
  * WAL (API and worker share the file), a 5 s busy timeout, foreign keys on, synchronous=NORMAL.
  */
+const BUSY_TIMEOUT_MS = 5000;
+
 export async function createDb(databaseUrl: string): Promise<PrismaClient> {
-  const adapter = new PrismaLibSql({ url: toLibsqlUrl(databaseUrl) });
+  // `timeout` is the busy timeout for every connection the libSQL client opens. The client hands its
+  // connection to each transaction and lazily opens a new one, so a PRAGMA alone would be lost (plan §6.3).
+  const adapter = new PrismaLibSql({ url: toLibsqlUrl(databaseUrl), timeout: BUSY_TIMEOUT_MS });
   const db = new PrismaClient({ adapter });
   await applyPragmas(db);
   return db;
