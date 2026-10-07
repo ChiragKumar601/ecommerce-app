@@ -6,6 +6,7 @@ import type { Quote } from '../../domain/pricing/types.js';
 import { formatIstDate, formatIstDateTime, istDate } from '../../domain/time.js';
 import type { Order, OrderLine, PaymentAllocation } from '../../generated/prisma/client.js';
 import { refundViews } from './refunds.js';
+import { returnViews } from './returns.js';
 
 // Order reads (ORD-002, ORD-003, PAY-013). Account-scoped: someone else's order is NOT_FOUND (ORD-007).
 
@@ -72,12 +73,14 @@ export async function orderDetail(ctx: AppContext, accountId: string, id: string
   const now = ctx.clock.now();
   const status = effectiveStatus(o, now);
   const q = o.priceSnapshot as unknown as Quote;
+  const returns = await returnViews(ctx, { id: o.id, status }, o.lines);
+  const returnedUnits = [...returns.values()].reduce((n, r) => n + r.returnedUnits, 0);
   return {
     id: o.id,
     orderNumber: o.orderNumber,
     status,
     statusLabel: STATUS_LABELS[status],
-    headline: headlineStatus(status, o.lines),
+    headline: headlineStatus(status, o.lines, returnedUnits),
     date: formatIstDateTime(o.createdAt),
     placedAt: o.placedAt ? formatIstDateTime(o.placedAt) : null,
     contactPhone: o.contactPhone,
@@ -89,6 +92,8 @@ export async function orderDetail(ctx: AppContext, accountId: string, id: string
       // CNL-001: Cancel is offered only while Placed, Confirmed or Packed.
       canCancel: l.lineState === 'active' && ['PLACED', 'CONFIRMED', 'PACKED'].includes(status),
       cancelled: l.lineState === 'cancelled' ? { at: l.cancelledAt ? formatIstDateTime(l.cancelledAt) : null, reason: l.cancelReason } : null,
+      // RET-001…005: Return action, "Not returnable", "Return window closed on …", and this line's returns.
+      returnInfo: returns.get(l.id) ?? null,
     })),
     amounts: {
       totalMrp: money(q.totalMrp), discountOnMrp: money(q.discountOnMrp), couponDiscount: money(q.couponDiscount), couponCode: o.couponCode,
@@ -129,13 +134,16 @@ export async function listOrders(ctx: AppContext, accountId: string, page: numbe
     ctx.db.order.count({ where: { accountId } }),
     ctx.db.order.findMany({ where: { accountId }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * pageSize, take: pageSize, include: { lines: { orderBy: { position: 'asc' } } } }),
   ]);
+  // ORD-006: "· n items returned" on the list too.
+  const returned = await ctx.db.returnRequest.groupBy({ by: ['orderId'], where: { orderId: { in: rows.map((o) => o.id) }, status: { in: ['PICKED_UP', 'REFUND_INITIATED', 'REFUNDED'] } }, _sum: { quantity: true } });
+  const returnedBy = new Map(returned.map((r) => [r.orderId, r._sum.quantity ?? 0]));
   return {
     items: rows.map((o) => {
       const status = effectiveStatus(o, now);
       const first = o.lines[0]?.productSnapshot as unknown as Snapshot | undefined;
       const units = o.lines.reduce((n, l) => n + l.quantity, 0);
       return {
-        id: o.id, orderNumber: o.orderNumber, date: formatIstDate(istDate(o.createdAt)), status, headline: headlineStatus(status, o.lines),
+        id: o.id, orderNumber: o.orderNumber, date: formatIstDate(istDate(o.createdAt)), status, headline: headlineStatus(status, o.lines, returnedBy.get(o.id) ?? 0),
         image: first?.image ?? null, firstItem: first ? `${first.brand} ${first.name}` : '', moreCount: Math.max(0, o.lines.length - 1), units,
         total: money(o.total), hasUnseenUpdate: o.hasUnseenUpdate,
       };

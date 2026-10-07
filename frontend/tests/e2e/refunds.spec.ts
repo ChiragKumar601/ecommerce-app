@@ -5,17 +5,30 @@ import { apiCall, signUpViaApi } from './helpers';
 async function threeLineOrder(page: Page) {
   await signUpViaApi(page, { phone: `9${String(Math.floor(Math.random() * 1e9)).padStart(9, '0')}` });
   await apiCall(page, 'POST', '/me/addresses', { recipientName: 'Test Shopper', recipientPhone: '9876543210', houseFlat: '7', streetArea: 'MG Road', city: 'Bengaluru', state: 'Karnataka', pincode: '560001', labelType: 'Home' });
-  for (const listing of ['men/topwear/jackets', 'men/footwear/sneakers', 'women/western-wear/tops']) {
-    const list = await apiCall<{ items: { id: string }[] }>(page, 'GET', `/products?scope=node&node=${listing}&inStock=1`);
-    const p = list.body.items[Math.floor(Math.random() * list.body.items.length)]!;
-    const product = await apiCall<{ variants: { id: string; available: number }[] }>(page, 'GET', `/products/${p.id}`);
-    await apiCall(page, 'POST', '/bag/lines', { variantId: product.body.variants.find((v) => v.available > 1)!.id });
+  // Well-stocked sizes, and a fresh checkout if parallel tests took the stock meanwhile.
+  let id = '';
+  for (let attempt = 0; ; attempt++) {
+    for (const listing of ['men/topwear/jackets', 'men/footwear/sneakers', 'women/western-wear/tops']) {
+      const list = await apiCall<{ items: { id: string }[] }>(page, 'GET', `/products?scope=node&node=${listing}&inStock=1`);
+      for (let k = 0; k < 5; k++) {
+        const p = list.body.items[Math.floor(Math.random() * list.body.items.length)]!;
+        const product = await apiCall<{ variants: { id: string; available: number }[] }>(page, 'GET', `/products/${p.id}`);
+        const v = product.body.variants.find((x) => x.available > 3);
+        if (v && (await apiCall(page, 'POST', '/bag/lines', { variantId: v.id })).status === 200) break;
+      }
+    }
+    const c = await apiCall<{ id: string }>(page, 'POST', '/checkout', { source: 'bag' });
+    await apiCall(page, 'PUT', `/checkout/${c.body.id}/step`, { step: 'payment' });
+    const v = await apiCall<{ quoteId: string }>(page, 'PUT', `/checkout/${c.body.id}/payment-selection`, { method: 'upi' });
+    const att = await apiCall<{ order?: { id: string } }>(page, 'POST', `/checkout/${c.body.id}/pay`, { quoteId: v.body.quoteId, payment: { method: 'upi', upiId: 'success@demo' } });
+    if (att.status === 201 && att.body.order) {
+      id = att.body.order.id;
+      break;
+    }
+    if (attempt >= 2) throw new Error(`pay failed: ${att.status} ${JSON.stringify(att.body)}`);
+    const bag = await apiCall<{ lines: { variantId: string }[] }>(page, 'GET', '/bag');
+    for (const l of bag.body.lines) await apiCall(page, 'DELETE', `/bag/lines/${l.variantId}`);
   }
-  const c = await apiCall<{ id: string }>(page, 'POST', '/checkout', { source: 'bag' });
-  await apiCall(page, 'PUT', `/checkout/${c.body.id}/step`, { step: 'payment' });
-  const v = await apiCall<{ quoteId: string }>(page, 'PUT', `/checkout/${c.body.id}/payment-selection`, { method: 'upi' });
-  const att = await apiCall<{ order: { id: string } }>(page, 'POST', `/checkout/${c.body.id}/pay`, { quoteId: v.body.quoteId, payment: { method: 'upi', upiId: 'success@demo' } });
-  const id = att.body.order.id;
   await expect.poll(async () => (await apiCall<{ status: string }>(page, 'GET', `/orders/${id}`)).body.status, { timeout: 15_000 }).not.toBe('AWAITING_PAYMENT');
   return id;
 }

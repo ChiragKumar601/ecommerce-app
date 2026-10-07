@@ -5,6 +5,7 @@ import { allocateRefund, type CapturedSource } from '../../domain/refunds/alloca
 import { formatIstDateTime } from '../../domain/time.js';
 import type { Order } from '../../generated/prisma/client.js';
 import { withOrder, type SimSettings, type Tx } from './core.js';
+import { completeReturnForRefund } from './returns.js';
 
 // Refunds (spec §6.20; plan S17.1): allocation from the pure domain module, ledger and gift-card
 // entries at Refunded, an expired gift card refunded as credits, and the RFD-007 cap.
@@ -147,6 +148,8 @@ export async function completeRefunds(ctx: AppContext): Promise<number> {
           await tx.creditLedgerEntry.create({ data: { id: newId(), accountId: order.accountId, amount: a.amount, type: 'refund_credit', orderId: order.id, refundId: d.id, note, createdAt: now } });
         }
       }
+      // A return's status mirrors its refund (spec §7.3).
+      await completeReturnForRefund(tx, d.id, ctx.clock.now());
       await tx.order.update({ where: { id: order.id }, data: { hasUnseenUpdate: true } });
       n += 1;
     });

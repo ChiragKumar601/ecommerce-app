@@ -661,3 +661,20 @@ A short chronological record of the important steps, decisions and changes on th
     - `RefundList` on the order page shows the amount, trigger, destinations and Initiated/Refunded with timestamps. The page keeps polling while a refund is processing.
     - E2E simulator steps changed from 2 s to 4 s, so there's time to cancel before an order ships.
 118. **Tests:** lint and typecheck pass; shared 26, backend 298 (+8: WX-3 to ₹679.90 → card with stock back and an idempotent cancel; WX-4 totalling ₹4,762 = ₹4,262 card + ₹500 credits with credits ledgered at Refunded; refused from Shipped and the EC-12 race; partial COD cancellation reducing the amount due; UF-08 whole-order refund with delivery; EC-09 wallet + COD; RFD-004 expired gift card → credits; ownership); RFD-007 asserted after each; frontend 19; E2E 242 passed / 16 skipped, including UF-10.
+
+## 2026-10-07 — Stage 18: Returns (complete)
+
+119. **Backend:**
+    - Migration M11: `ReturnRequest` (quantity, reason, comment, status, pickup attempt, forced tag, rejection or closed reason, refund link, its own step history), plus a trigger that requires quantity ≥ 1. It was applied with a busy timeout because the dev servers were running.
+    - `orders/returns.ts`:
+      - **Eligibility (RET-001):** the order is Delivered, the line is active and returnable, it's inside the 14-day window, and units remain. Every unit already in a return is used up, including rejected (RET-004) and closed (RET-005) ones. The messages are "Return by …", "Not returnable" and "Return window closed on …".
+      - **Preview and create (RET-002):** quantity, reasons per SD-54, comment ≤ 500, idempotent; the preview shows the pickup address (the order's address snapshot) and the estimated refund.
+      - **`advanceReturns` (5 s worker job, RET-003):** Requested → Approved or Rejected (80/20, or forced by `#approve` / `#reject`; the rejection reason is one of SD-55's three) → Pickup Scheduled → Picked Up, or Pickup Failed (`#pickupfail` forces it; `#approve` forces success) → rescheduled as attempt 2 → Return Closed after a second failure.
+      - **At Picked Up (RET-007):** the units go back on hand and are refunded with the per-unit shares of the next units (RFD-001). The return then shows Refund Initiated and becomes Refunded when its refund completes (`completeRefunds` → `completeReturnForRefund`).
+    - The order view adds per-line return info (eligibility, message, returns with history, refund) and the "· n items returned" headline on both the detail and the list (ORD-006).
+120. **Frontend:**
+    - `ReturnFlow` dialog: quantity, reason, comment with a link to the demo tags, then a review with the pickup address and estimated refund.
+    - `ReturnStatus` on each line: status badge, rejection reason or closed message, refund amount and timestamped steps (a vertical list on mobile).
+    - The order page keeps polling while a return is in progress.
+121. **Test fix:** the UF-10 E2E helper now picks well-stocked sizes and retries checkout if parallel tests took the stock (one Firefox flake). It was stable over 3 repeats.
+122. **Tests:** lint and typecheck pass; shared 26, backend 305 (+7: WX-2 to ₹850.11 → card with the full step trail, stock back, idempotent create, "Not returnable" for Beauty and before delivery; EC-11 refunds of ₹850.11 + ₹850.12 = line net ₹1,700.23; EC-10 with no delivery deduction; `#reject` with a stated reason and units used; `#pickupfail` twice → Return Closed with no refund; the 14-day window; validation and ownership); frontend 19; E2E 248 passed / 16 skipped, including UF-11 with all three tags. The return flow was checked at 360 and 1280 px.

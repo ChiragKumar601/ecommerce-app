@@ -31,6 +31,7 @@ export interface OrderDetail {
   lines: {
     id: string; name: string; brand: string; size: string; href: string; image: { url: string; alt: string } | null; quantity: number; unitPrice: Money; lineNetPaid: Money;
     lineState: string; returnable: boolean; canCancel: boolean; cancelled: { at: string | null; reason: string | null } | null;
+    returnInfo: ReturnInfo | null;
   }[];
   amounts: { totalMrp: Money; discountOnMrp: Money; couponDiscount: Money; couponCode: string | null; bankOfferDiscount: Money; deliveryCharge: Money; total: Money; taxText: string };
   payment: { methods: { source: string; label: string; amount: Money; status: string }[]; paidOnline: Money; giftCard: Money; credits: Money; codDue: Money | null; codCollected: Money | null };
@@ -59,6 +60,37 @@ export interface RefundView {
   refundedAt: string | null;
 }
 
+export interface ReturnView {
+  id: string;
+  quantity: number;
+  reason: string;
+  status: string;
+  statusLabel: string;
+  rejectionReason: string | null;
+  closedMessage: string | null;
+  pickupAttempt: number;
+  refund: Money | null;
+  history: { status: string; label: string; at: string }[];
+  requestedAt: string;
+}
+
+export interface ReturnInfo {
+  canReturn: boolean;
+  returnableQty: number;
+  message: string | null;
+  returns: ReturnView[];
+  returnedUnits: number;
+}
+
+export interface ReturnPreview {
+  line: { id: string; name: string; brand: string; size: string; image: { url: string; alt: string } | null; quantity: number };
+  returnableQty: number;
+  quantity: number;
+  reasons: string[];
+  pickupAddress: { recipientName: string; oneLine: string };
+  refund: { amount: Money; destinations: { label: string; amount: Money }[] };
+}
+
 export interface CancelPreview {
   line: { id: string; name: string; brand: string; size: string; image: { url: string; alt: string } | null; quantity: number; lineNetPaid: Money };
   lastLine: boolean;
@@ -77,7 +109,12 @@ export function useOrder(id: string) {
     queryKey: orderKey(id),
     queryFn: () => api<OrderDetail>(`/orders/${id}`),
     // Keep polling while the order moves, or while a refund is still being processed.
-    refetchInterval: (q) => (q.state.data && (!TERMINAL.includes(q.state.data.status) || q.state.data.refunds.some((r) => r.status === 'initiated')) ? 3000 : false),
+    refetchInterval: (q) => {
+      const d = q.state.data;
+      if (!d) return false;
+      const returning = d.lines.some((l) => l.returnInfo?.returns.some((r) => !['RETURN_REJECTED', 'RETURN_CLOSED', 'REFUNDED'].includes(r.status)));
+      return !TERMINAL.includes(d.status) || returning || d.refunds.some((r) => r.status === 'initiated') ? 3000 : false;
+    },
     refetchOnWindowFocus: true,
   });
 }

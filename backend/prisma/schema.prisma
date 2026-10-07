@@ -682,6 +682,7 @@ model Order {
   allocations          PaymentAllocation[]
   events               OrderStatusEvent[]
   refunds              Refund[]
+  returns              ReturnRequest[]
 
   @@index([accountId, createdAt])
   @@index([status, retryEndsAt])
@@ -807,4 +808,31 @@ model RefundAllocation {
   accountGiftCardId String?
   label             String
   note              String?
+}
+
+// ───────────────────────── M11 returns (Stage 18) ─────────────────────────
+
+/// A return of some units of a delivered line (spec §4.7, §7.3). Several per line are allowed.
+model ReturnRequest {
+  id               String    @id
+  orderId          String
+  order            Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderLineId      String
+  quantity         Int
+  reason           String
+  comment          String?
+  status           String // §7.3 states
+  pickupAttempt    Int       @default(0)
+  /// '#approve' | '#reject' | '#pickupfail' from the comment (RET-006).
+  outcomeForcedBy  String?
+  rejectionReason  String?
+  closedReason     String?
+  refundId         String?
+  /// [{ status, at }] for the return's own timeline.
+  history          Json
+  createdAt        DateTime
+  nextTransitionAt DateTime?
+
+  @@index([status, nextTransitionAt])
+  @@index([orderLineId])
 }

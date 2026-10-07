@@ -9,8 +9,9 @@ import { istDate } from '../../domain/time.js';
 import { attemptView, cancelPendingOrder, orderPaymentQuote, pay, retryPayment, setCheckoutPayment } from '../../services/payment.js';
 import { listOrders, markOrderSeen, orderDetail } from '../../services/orders/view.js';
 import { CANCELLATION_REASONS, cancelLine, cancelPreview } from '../../services/orders/cancellation.js';
+import { createReturn, RETURN_REASONS, returnPreview } from '../../services/orders/returns.js';
 import { confirmDelivery, rejectDelivery } from '../../services/orders/fulfilment.js';
-import { otpSchema } from '@app/shared';
+import { otpSchema, returnCommentSchema } from '@app/shared';
 
 /** Payment and order creation (S15; spec §11.2 Pay, RetryPayment, CancelPendingOrder). */
 export function paymentsRouter(ctx: AppContext): Router {
@@ -60,6 +61,15 @@ export function paymentsRouter(ctx: AppContext): Router {
       const b = req.body as { reason: string; comment?: string };
       await cancelLine(ctx, accountId(req), pid(req), lid(req), b.reason, b.comment || null);
       res.json(await orderDetail(ctx, accountId(req), pid(req)));
+    }));
+  // Returns (RET-001…002): preview with the estimated refund, then create (idempotent).
+  r.get('/orders/:id/lines/:lineId/return-preview', requireAuth, noStore, lineParams, validate(z.object({ quantity: z.coerce.number().int().min(1).max(10).default(1) }), 'query'), handler(async (req, res) =>
+    res.json(await returnPreview(ctx, accountId(req), pid(req), lid(req), (req.query as unknown as { quantity: number }).quantity))));
+  r.post('/orders/:id/lines/:lineId/returns', requireAuth, lineParams, idempotent(ctx),
+    validate(z.object({ quantity: z.number().int().min(1).max(10), reason: z.enum(RETURN_REASONS, { error: 'Choose a reason' }), comment: returnCommentSchema.optional() })),
+    handler(async (req, res) => {
+      await createReturn(ctx, accountId(req), pid(req), lid(req), req.body as { quantity: number; reason: string; comment?: string });
+      res.status(201).json(await orderDetail(ctx, accountId(req), pid(req)));
     }));
   r.get('/orders/:id', requireAuth, noStore, id, handler(async (req, res) => res.json(await orderDetail(ctx, accountId(req), pid(req)))));
   r.post('/orders/:id/payment-quote', requireAuth, id, validate(paymentQuoteSelectionSchema), handler(async (req, res) =>

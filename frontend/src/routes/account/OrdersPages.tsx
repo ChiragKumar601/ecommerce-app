@@ -4,6 +4,7 @@ import { useEffect, useId, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { Badge, Button, ConfirmDialog, EmptyState, ErrorState, InlineMessage, Input, PageLayout, Skeleton } from '../../components/ui';
 import { CancelDialog, RefundList } from '../../components/orders/CancelDialog';
+import { ReturnFlow, ReturnStatus } from '../../components/orders/ReturnFlow';
 import { orderKey, useOrder, useOrders, type OrderDetail } from '../../features/orders';
 import { api, ApiError, errorMessage } from '../../lib/api-client';
 import { cn } from '../../lib/cn';
@@ -161,6 +162,7 @@ export function OrderDetailPage() {
   const { id = '' } = useParams();
   const q = useOrder(id);
   const [cancelling, setCancelling] = useState<string | null>(null);
+  const [returning, setReturning] = useState<{ id: string; max: number } | null>(null);
   const unseen = q.data?.hasUnseenUpdate;
   // Opening an order clears its unseen-update dot (PRF-007).
   useEffect(() => {
@@ -227,7 +229,9 @@ export function OrderDetailPage() {
                   <p className="text-ink-muted">Size {l.size} · Qty {l.quantity}</p>
                   {l.cancelled && <p className="mt-1"><Badge tone="danger">Cancelled</Badge>{l.cancelled.reason && <span className="ml-2 text-caption text-ink-muted">{l.cancelled.reason}</span>}</p>}
                   {l.canCancel && <Button size="sm" variant="secondary" className="mt-2" onClick={() => setCancelling(l.id)}>Cancel item</Button>}
-                  {!l.returnable && o.status === 'DELIVERED' && <p className="mt-1 text-caption text-ink-muted">Not returnable</p>}
+                  {l.returnInfo?.message && <p className={cn('mt-1 text-caption', l.returnInfo.canReturn ? 'text-ink-muted' : 'font-medium text-ink-soft')}>{l.returnInfo.message}</p>}
+                  {l.returnInfo?.canReturn && <Button size="sm" variant="secondary" className="mt-2" onClick={() => setReturning({ id: l.id, max: l.returnInfo!.returnableQty })}>Return</Button>}
+                  {l.returnInfo && <ReturnStatus info={l.returnInfo} />}
                 </div>
                 <p className="tabular text-small font-semibold">{l.lineNetPaid.display}</p>
               </li>
@@ -264,6 +268,7 @@ export function OrderDetailPage() {
         </div>
       </div>
       {cancelling && <CancelDialog orderId={o.id} lineId={cancelling} onClose={() => setCancelling(null)} />}
+      {returning && <ReturnFlow orderId={o.id} lineId={returning.id} max={returning.max} onClose={() => setReturning(null)} />}
     </PageLayout>
   );
 }
