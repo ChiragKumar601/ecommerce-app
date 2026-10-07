@@ -535,3 +535,18 @@ A short chronological record of the important steps, decisions and changes on th
       - Mapbox token, to verify the live map step.
       - The WebKit E2E run, which is still pending since Stage 0.
     - **Next:** Stage 17 (refunds and cancellation), which also adds the whole-order refunds for rejected and returned-to-origin orders.
+
+## 2026-10-07 — Mapbox token added; map step verified live
+
+105. **The owner supplied a Mapbox public token.** It is stored in `frontend/.env.local`, which is gitignored and not committed. It was checked against the Mapbox Geocoding API.
+106. **Bug found and fixed in the map step (S13):** the map rendered blank. Mapbox's stylesheet sets `position: relative` on the map container, which overrode its `absolute inset-0` layout. The container collapsed to zero height, so the canvas stayed hidden while tiles loaded. The container is now sized with width and height, and the map is resized once loaded (the dialog may still be animating).
+107. **Verified live** (new `tests/e2e/map-live.spec.ts`, Chromium and mobile; skipped when no token is configured):
+    - the map loads
+    - place search → pin → reverse-geocode prefill of street, city, state and pincode
+    - dragging the pin re-geocodes
+    - the static map preview on the details step loads
+    - saving keeps the coordinates
+    - Edit reopens the map at the saved pin
+    - "Use my current location" moves the pin
+    - The existing tests still block Mapbox and confirm the manual fallback now runs through the real failure path.
+108. **Tests:** E2E 238 passed / 16 skipped. One Stage 6 infinite-scroll test failed once on mobile under the full parallel load and passed 5/5 when repeated; it's noted as an occasional flake to look at in Stage 22.

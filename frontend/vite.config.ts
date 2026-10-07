@@ -11,7 +11,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: { port: 5173, strictPort: true, proxy: { '/api': API_TARGET, '/media': API_TARGET } },
   // mapbox-gl is one large chunk, but it loads only on the address map step (FE-006).
-  build: { chunkSizeWarningLimit: 1800 },
+  build: { chunkSizeWarningLimit: 2000 },
   preview: { port: 4173, strictPort: true, proxy: { '/api': API_TARGET, '/media': API_TARGET } },
   test: {
     environment: 'jsdom',

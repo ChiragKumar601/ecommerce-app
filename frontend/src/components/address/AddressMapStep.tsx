@@ -97,6 +97,7 @@ export default function AddressMapStep({ initial, onConfirm, onFail }: { initial
       });
       m.on('load', () => {
         done = true;
+        m.resize(); // the dialog may still have been animating when the map was created
         window.clearTimeout(timer);
         setReady(true);
         if (initial) void place(initial.longitude, initial.latitude, false);
@@ -163,7 +164,8 @@ export default function AddressMapStep({ initial, onConfirm, onFail }: { initial
         )}
       </form>
       <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-surface-muted sm:aspect-[16/9]">
-        <div ref={box} className="absolute inset-0" aria-label="Map. Drag the pin to your exact location." role="application" />
+        {/* Sized with width/height, not inset: mapbox-gl's stylesheet makes the container position: relative. */}
+        <div ref={box} className="h-full w-full" aria-label="Map. Drag the pin to your exact location." role="application" />
         {!ready && <div className="absolute inset-0 flex items-center justify-center"><Spinner label="Loading map" /></div>}
       </div>
       <Button variant="secondary" onClick={locate} disabled={!ready || busy}><LocateFixed className="size-4" aria-hidden="true" />Use my current location</Button>
